@@ -9,6 +9,7 @@ import { AInTandemError } from '../errors/AInTandemError.js';
 import { NetworkError } from '../errors/NetworkError.js';
 import { AuthError } from '../errors/AuthError.js';
 import { ApiError } from '../errors/ApiError.js';
+import { ErrorCode, type ApiErrorResponse } from './types.js';
 
 /**
  * HTTP Client configuration
@@ -102,7 +103,7 @@ export class HttpClient {
 
       // Check for errors
       if (!processedResponse.ok) {
-        throw this.createError(processedResponse);
+        throw await this.createError(processedResponse);
       }
 
       clearTimeout(timeoutId);
@@ -264,25 +265,61 @@ export class HttpClient {
 
   /**
    * Create appropriate error from HTTP response
+   * Parses standardized API error responses
    */
-  private createError(response: Response): AInTandemError {
+  private async createError(response: Response): Promise<AInTandemError> {
     const url = response.url;
+    const status = response.status;
 
-    // Authentication errors
-    if (response.status === 401) {
-      return new AuthError('Authentication failed: Invalid or expired token', 401, { url });
+    try {
+      // Try to parse standardized error response
+      const errorBody = await response.json() as ApiErrorResponse;
+
+      // Check if it's a standardized error response
+      if (errorBody.error && errorBody.code && errorBody.statusCode) {
+        const { error: message, code, details, timestamp, path } = errorBody;
+
+        // Authentication errors
+        if (status === 401 || code === ErrorCode.UNAUTHORIZED || code === ErrorCode.AUTHENTICATION_FAILED) {
+          return new AuthError(message, status, { url, code, details, timestamp, path });
+        }
+
+        // Forbidden errors
+        if (status === 403 || code === ErrorCode.FORBIDDEN) {
+          return new AuthError(message, status, { url, code, details, timestamp, path });
+        }
+
+        // Other API errors with standardized format
+        return new ApiError(message, status, url, {
+          code,
+          details,
+          timestamp,
+          path,
+        });
+      }
+    } catch (parseError) {
+      // Failed to parse JSON or not a standard error response
+      // Fall back to basic error
+      if (this.config.enableLogging) {
+        console.warn('[HttpClient] Failed to parse error response:', parseError);
+      }
     }
 
-    if (response.status === 403) {
-      return new AuthError('Forbidden: Insufficient permissions', 403, { url });
+    // Fallback: Authentication errors
+    if (status === 401) {
+      return new AuthError('Authentication failed: Invalid or expired token', status, { url });
     }
 
-    // Other API errors
+    if (status === 403) {
+      return new AuthError('Forbidden: Insufficient permissions', status, { url });
+    }
+
+    // Fallback: Other API errors
     return new ApiError(
       `API request failed: ${response.statusText}`,
-      response.status,
+      status,
       url,
-      { status: response.status }
+      { status }
     );
   }
 

@@ -1,0 +1,81 @@
+name: Type Sync Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  type-sync:
+    runs-on: ubuntu-latest
+    name: Check SDK Type Synchronization
+
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Checkout Orchestrator (for OpenAPI spec)
+        uses: actions/checkout@v4
+        with:
+          repository: aintandem/orchestrator
+          path: orchestrator
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Orchestrator dependencies
+        working-directory: ./orchestrator
+        run: pnpm install
+
+      - name: Build Orchestrator API & Generate OpenAPI Spec
+        working-directory: ./orchestrator
+        run: |
+          pnpm build:api
+          echo "✅ Orchestrator API built and OpenAPI spec generated"
+
+      - name: Install SDK dependencies
+        run: pnpm install
+
+      - name: Generate SDK types from local spec
+        env:
+          OPENAPI_SPEC_PATH: ../orchestrator/dist/swagger.json
+        run: |
+          pnpm generate-types
+          echo "✅ SDK types generated from Orchestrator spec"
+
+      - name: Check for type differences
+        id: diff-check
+        continue-on-error: true
+        run: |
+          git diff --exit-code packages/core/src/types/generated/ || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Show diff if changes detected
+        if: steps.diff-check.outputs.has_changes == 'true'
+        run: |
+          echo "⚠️  Detected changes in generated types!"
+          echo ""
+          echo "Diff:"
+          git diff packages/core/src/types/generated/
+
+      - name: Fail if types are out of sync
+        if: steps.diff-check.outputs.has_changes == 'true'
+        run: |
+          echo ""
+          echo "❌ SDK types are out of sync with Orchestrator OpenAPI spec!"
+          echo ""
+          echo "Please regenerate the types by running:"
+          echo "  pnpm generate-types"
+          echo ""
+          echo "Then commit the changes."
+          exit 1

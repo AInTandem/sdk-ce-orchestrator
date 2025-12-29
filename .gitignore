@@ -1,3 +1,16 @@
+# AInTandem
+.flexy-qwen
+.flexy-claude
+.flexy-gemini
+.flexy-codex
+.cospec-sync
+.kai-notify.json
+
+# AI agents
+QWEN.md
+CLAUDE.md
+.claude
+
 # Dependencies
 node_modules/
 .pnpm-store/

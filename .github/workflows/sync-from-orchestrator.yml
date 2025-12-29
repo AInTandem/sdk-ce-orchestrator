@@ -1,0 +1,154 @@
+name: Sync Types from Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Source of OpenAPI spec'
+        required: true
+        default: 'local'
+        type: choice
+        options:
+          - local    # Build from orchestrator source
+          - remote   # Fetch from deployed API
+      orchestrator_ref:
+        description: 'Orchestrator branch/tag (for local source)'
+        required: false
+        default: 'main'
+      api_url:
+        description: 'URL of deployed API OpenAPI spec (for remote source)'
+        required: false
+        default: 'https://staging-api.aintandem.com/openapi.json'
+      environment:
+        description: 'Environment name (for remote source)'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+  schedule:
+    # Run daily at 2 AM UTC to check for API updates
+    - cron: '0 2 * * *'
+
+  repository_dispatch:
+    types: [orchestrator-updated]
+
+jobs:
+  sync-types:
+    runs-on: ubuntu-latest
+    name: Sync SDK Types from ${{ inputs.source || 'Scheduled' }}
+
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@v4
+
+      - name: Checkout Orchestrator (for local source)
+        if: inputs.source == 'local' || github.event_name == 'schedule'
+        uses: actions/checkout@v4
+        with:
+          repository: aintandem/orchestrator
+          path: orchestrator
+          ref: ${{ inputs.orchestrator_ref || 'main' }}
+
+      - name: Determine API URL (for remote source)
+        id: api-url
+        if: inputs.source == 'remote' || github.event_name == 'repository_dispatch'
+        run: |
+          if [ "${{ inputs.api_url }}" != "" ] && [ "${{ inputs.api_url }}" != "https://staging-api.aintandem.com/openapi.json" ]; then
+            echo "url=${{ inputs.api_url }}" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.environment }}" == "production" ]; then
+            echo "url=https://api.aintandem.com/openapi.json" >> $GITHUB_OUTPUT
+          else
+            echo "url=https://staging-api.aintandem.com/openapi.json" >> $GITHUB_OUTPUT
+          fi
+
+          # Use URL from repository dispatch payload if available
+          if [ "${{ github.event.client_payload.openapi_url }}" != "" ]; then
+            echo "url=${{ github.event.client_payload.openapi_url }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Build Orchestrator OpenAPI Spec (local source)
+        if: inputs.source == 'local' || github.event_name == 'schedule'
+        working-directory: ./orchestrator
+        run: |
+          pnpm install
+          pnpm build:api
+          echo "✅ Orchestrator OpenAPI spec built locally"
+
+      - name: Install SDK dependencies
+        run: pnpm install
+
+      - name: Generate SDK types (local source)
+        if: inputs.source == 'local' || github.event_name == 'schedule'
+        env:
+          OPENAPI_SPEC_PATH: ./orchestrator/dist/swagger.json
+        run: |
+          pnpm generate-types
+          echo "✅ SDK types generated from local Orchestrator spec"
+
+      - name: Generate SDK types (remote source)
+        if: inputs.source == 'remote' || github.event_name == 'repository_dispatch'
+        env:
+          OPENAPI_SPEC_URL: ${{ steps.api-url.outputs.url }}
+        run: |
+          pnpm generate-types
+          echo "✅ SDK types generated from remote API"
+
+      - name: Check for changes
+        id: diff-check
+        continue-on-error: true
+        run: |
+          git diff --exit-code packages/core/src/types/generated/ || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Show changes
+        if: steps.diff-check.outputs.has_changes == 'true'
+        run: |
+          echo "📝 Detected changes in generated types:"
+          git diff packages/core/src/types/generated/
+
+      - name: Create Pull Request (if changes detected)
+        if: steps.diff-check.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: sync SDK types from Orchestrator'
+          committer: GitHub <noreply@github.com>
+          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          title: 'chore: sync SDK types from Orchestrator API'
+          body: |
+            ## Automated SDK Type Synchronization
+
+            This PR was automatically created because changes were detected in the Orchestrator API's OpenAPI specification.
+
+            **Source**: ${{ inputs.source == 'remote' && steps.api-url.outputs.url || 'Orchestrator source code' }}
+            **Environment**: ${{ inputs.environment || 'N/A (local build)' }}
+            **Orchestrator Ref**: ${{ inputs.orchestrator_ref || 'main' }}
+            **Generated at**: ${{ github.event.head_commit.timestamp || github.event.workflow_run.created_at || github.event.repository_dispatch.created_at }}
+
+            ### What changed
+            See the diff below for details.
+
+            ### Next steps
+            1. Review the changes
+            2. Run tests to ensure compatibility
+            3. Merge if everything looks good
+          labels: |
+            automated
+            sdk
+            types
+            orchestrator
+          branch: sync/sdk-types-from-orchestrator
+          delete-branch: true

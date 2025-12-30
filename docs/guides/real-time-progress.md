@@ -1,27 +1,37 @@
-# 實時進度追蹤指南
+# Real-time Progress Tracking Guide
 
-本指南詳細說明如何使用 AInTandem SDK 通過 WebSocket 進行實時進度追蹤，包括任務進度、工作流進度和容器進度。
+This guide explains how to use the AInTandem SDK for real-time progress tracking via WebSocket, including task progress, workflow progress, and sandbox progress.
 
-## 概述
+## Overview
 
-AInTandem SDK 提供了完整的 WebSocket 支持來實時追蹤：
-- 單個任務的執行進度
-- 工作流的執行進度
-- 容器的操作進度
-- 項目級別的所有進度事件
+The AInTandem SDK provides complete WebSocket support for real-time tracking of:
+- Single task execution progress
+- Workflow execution progress
+- Sandbox operation progress
+- All progress events at project level
 
-## WebSocket 連接管理
+## WebSocket Connection Management
 
-SDK 內部使用 `WebSocketManager` 和 `ProgressClient` 自動管理 WebSocket 連接：
+The SDK internally uses `WebSocketManager` and `ProgressClient` to automatically manage WebSocket connections:
 
-- 自動連接和重連
-- 心跳檢測
-- 事件訂閱和取消訂閱
-- 連接狀態監控
+- Automatic connection and reconnection
+- Heartbeat detection
+- Event subscription and unsubscription
+- Connection state monitoring
+- **Connection management by project ID**: Each project has an independent WebSocket connection
 
-## 核心 SDK 使用
+### WebSocket URL Format
 
-### 1. 追蹤單個任務進度
+The Orchestrator API WebSocket endpoint format is:
+```
+ws://localhost:9900/api/progress/subscribe/{projectId}?token={jwt}
+```
+
+The SDK automatically handles URL construction and token attachment. Developers only need to provide the `projectId`.
+
+## Core SDK Usage
+
+### 1. Track Single Task Progress
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -30,607 +40,392 @@ const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
 
-// 提交異步任務
-const task = await client.tasks.executeTask({
-  projectId: 'project-123',
-  task: 'data-analysis',
-  input: { dataset: 'sales-2024' },
-  async: true,
-});
+// Login
+await client.auth.login({ username: 'user', password: 'pass' });
 
-// 訂閱任務進度
+// Submit async task
+const task = await client.tasks.executeTask(
+  'project-123',
+  {
+    task: 'data-analysis',
+    input: { dataset: 'sales-2024' },
+  }
+);
+
+// Subscribe to task progress
 await client.subscribeToTask(
   'project-123',
-  task.id,
-  // 進度事件回調
+  task.taskId,
+  // Progress event callback
   (event) => {
-    console.log('任務進度更新:', event);
-    // event 類型: TaskEvent
-    // - type: 'task_started', 'task_progress', 'task_completed', 'task_failed'
+    console.log('Task progress update:', event);
+    // Event type: TaskEvent
+    // - type: 'task_queued', 'task_started', 'step_progress', 'output',
+    //         'artifact', 'task_completed', 'task_failed', 'task_cancelled'
   },
-  // 完成回調
+  // Completion callback
   (event) => {
-    console.log('任務完成:', event.output);
+    console.log('Task completed:', event.output);
   },
-  // 錯誤回調
+  // Error callback
   (event) => {
-    console.error('任務失敗:', event.error);
+    console.error('Task failed:', event.error);
   }
 );
 ```
 
-### 2. 追蹤工作流執行進度
+### 2. Track Workflow Execution Progress
 
 ```typescript
-// 創建工作流執行
-const execution = await client.workflows.createWorkflowExecution('workflow-id', {
-  projectId: 'project-123',
-  input: { dataset: 'sales-2024' },
-});
-
-// 訂閱工作流進度
+// Subscribe to workflow progress
 await client.subscribeToWorkflow(
   'project-123',
+  // Progress event callback
+  (event) => {
+    console.log('Workflow progress update:', event);
+    // Event type: WorkflowEvent
+    // - type: 'workflow_execution_created', 'workflow_execution_started',
+    //         'workflow_phase_started', 'workflow_phase_completed',
+    //         'workflow_execution_completed', 'workflow_execution_failed',
+    //         'workflow_execution_paused', 'workflow_execution_resumed'
+  },
+  // Workflow ID (optional)
   'workflow-id',
-  execution.id,
-  // 進度事件回調
+  // Execution ID (optional)
+  'execution-id',
+  // Completion callback
   (event) => {
-    console.log('工作流進度更新:', event);
-    // event 類型: WorkflowEvent
-    // - type: 'workflow_started', 'phase_started', 'phase_completed',
-    //         'step_started', 'step_completed', 'workflow_completed', 'workflow_failed'
+    console.log('Workflow completed:', event.output);
   },
-  // 完成回調
+  // Error callback
   (event) => {
-    console.log('工作流完成:', event.output);
-  },
-  // 錯誤回調
-  (event) => {
-    console.error('工作流失敗:', event.error);
+    console.error('Workflow failed:', event.error);
   }
 );
 ```
 
-### 3. 追蹤容器操作進度
+### 3. Track Sandbox Operation Progress
 
 ```typescript
-// 訂閱容器操作進度
-await client.subscribeToContainer(
+// Subscribe to sandbox operation progress
+await client.subscribeToSandbox(
   'project-123',
-  'container-id',
-  // 進度事件回調
+  // Progress event callback
   (event) => {
-    console.log('容器事件:', event);
-    // event 類型: ContainerEvent
-    // - type: 'container_created', 'container_started', 'container_stopped',
-    //         'container_removed', 'container_logs', etc.
-  }
+    console.log('Sandbox event:', event);
+    // Event type: SandboxEvent
+    // - type: 'sandbox_created', 'sandbox_started', 'sandbox_stopped', 'sandbox_error'
+  },
+  // Sandbox ID (optional)
+  'sandbox-id'
 );
 ```
 
-### 4. 追蹤項目所有進度
+### 4. Track All Project Progress
 
 ```typescript
-// 訂閱項目的所有進度事件
-const subscription = await client.progress.subscribeToProgress(
+// Get Progress Client
+const progress = client.getProgress();
+
+// Subscribe to all progress events for the project
+const subscription = await progress.subscribeToProgress(
   'project-123',
-  // 事件回調
+  // Event callback
   (event) => {
-    console.log('項目進度事件:', event);
-    // event 類型: ProgressEvent (TaskEvent | WorkflowEvent | ContainerEvent)
+    console.log('Project progress event:', event);
+    // Event type: ProgressEvent (TaskEvent | WorkflowEvent | SandboxEvent)
   }
 );
 
-// 取消訂閱
+// Unsubscribe
 subscription.unsubscribe();
 ```
 
-### 5. 取消訂閱
+### 5. Direct Connection with ProgressClient
 
 ```typescript
-// 方法 1：保存取消函數
+// Get Progress Client
+const progress = client.getProgress();
+
+// Connect to specific project (automatically establishes WebSocket connection)
+await progress.connect('project-123');
+
+// Check connection status
+const isConnected = progress.isConnected('project-123');
+console.log('Connection status:', isConnected);
+
+// Get connection state
+const state = progress.getConnectionState('project-123');
+console.log('Connection state:', state);
+// Possible values: 'disconnected', 'connecting', 'connected', 'reconnecting', 'disconnecting'
+
+// Disconnect
+progress.disconnect('project-123');
+
+// Disconnect all
+progress.disconnectAll();
+```
+
+### 6. Unsubscribe
+
+```typescript
+// Method 1: Save unsubscribe function
 const unsubscribe = await client.subscribeToTask(...);
-// 稍後取消
+// Unsubscribe later
 unsubscribe();
 
-// 方法 2：使用 ProgressSubscription
+// Method 2: Use ProgressSubscription
 const subscription = await client.progress.subscribeToProgress(...);
-// 稍後取消
+// Unsubscribe later
 subscription.unsubscribe();
 ```
 
-## React Hooks 使用
+## Event Type Details
 
-### 1. 使用 useTaskProgress Hook
-
-```tsx
-import { useTaskProgress } from '@aintandem/sdk-react';
-
-function TaskProgress({ projectId, taskId }: { projectId: string; taskId: string }) {
-  const { events, isConnected, clearEvents } = useTaskProgress(
-    projectId,
-    taskId,
-    {
-      // 進度事件回調
-      onEvent: (event) => {
-        console.log('任務事件:', event);
-      },
-      // 完成回調
-      onComplete: (event) => {
-        console.log('任務完成:', event.output);
-        alert('任務完成！');
-      },
-      // 錯誤回調
-      onFailed: (event) => {
-        console.error('任務失敗:', event.error);
-        alert('任務失敗！');
-      },
-    }
-  );
-
-  // 計算進度
-  const progressEvents = events.filter(e => e.type === 'task_progress');
-  const latestProgress = progressEvents.length > 0
-    ? progressEvents[progressEvents.length - 1]
-    : null;
-
-  return (
-    <div>
-      <div>
-        <p>連接狀態: {isConnected ? '已連接' : '未連接'}</p>
-        <button onClick={clearEvents}>清除事件</button>
-      </div>
-
-      {latestProgress && (
-        <div>
-          <h3>任務進度</h3>
-          <p>完成百分比: {latestProgress.data.percent}%</p>
-          <p>當前步驟: {latestProgress.data.currentStep}</p>
-          <ProgressBar value={latestProgress.data.percent} />
-        </div>
-      )}
-
-      <div>
-        <h3>事件日誌</h3>
-        <ul>
-          {events.map((event, index) => (
-            <li key={index}>
-              {event.type} - {new Date(event.timestamp).toLocaleTimeString()}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-```
-
-### 2. 使用 useWorkflowProgress Hook
-
-```tsx
-import { useWorkflowProgress } from '@aintandem/sdk-react';
-
-function WorkflowProgress({ workflowId, executionId }: { workflowId: string; executionId: string }) {
-  const projectId = 'project-123';
-  const { events, isConnected, clearEvents } = useWorkflowProgress(
-    workflowId,
-    executionId,
-    {
-      onEvent: (event) => {
-        console.log('工作流事件:', event);
-      },
-      onComplete: (event) => {
-        console.log('工作流完成:', event.output);
-      },
-      onFailed: (event) => {
-        console.error('工作流失敗:', event.error);
-      },
-    }
-  );
-
-  // 分析事件
-  const phaseEvents = events.filter(e =>
-    e.type === 'phase_started' || e.type === 'phase_completed'
-  );
-  const stepEvents = events.filter(e =>
-    e.type === 'step_started' || e.type === 'step_completed'
-  );
-
-  return (
-    <div>
-      <p>連接狀態: {isConnected ? '已連接' : '未連接'}</p>
-
-      <div>
-        <h3>階段進度</h3>
-        <ul>
-          {phaseEvents.map((event, index) => (
-            <li key={index}>
-              {event.type}: {event.data.phaseName || event.data.phaseId}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3>步驟進度</h3>
-        <ul>
-          {stepEvents.map((event, index) => (
-            <li key={index}>
-              {event.type}: {event.data.stepName || event.data.stepId}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-```
-
-### 3. 使用 useContainerProgress Hook
-
-```tsx
-import { useContainerProgress } from '@aintandem/sdk-react';
-
-function ContainerMonitor({ projectId }: { projectId: string }) {
-  const containerId = 'container-123';
-  const { events, isConnected, clearEvents } = useContainerProgress(
-    projectId,
-    containerId,
-    (event) => {
-      console.log('容器事件:', event);
-    }
-  );
-
-  return (
-    <div>
-      <p>容器 ID: {containerId}</p>
-      <p>連接狀態: {isConnected ? '已連接' : '未連接'}</p>
-
-      <div>
-        <h3>容器事件</h3>
-        <ul>
-          {events.map((event, index) => (
-            <li key={index}>
-              {event.type} - {new Date(event.timestamp).toLocaleTimeString()}
-              {event.data.message && `: ${event.data.message}`}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <button onClick={clearEvents}>清除事件</button>
-    </div>
-  );
-}
-```
-
-### 4. 使用 useProgress Hook（項目級別）
-
-```tsx
-import { useProgress } from '@aintandem/sdk-react';
-
-function ProjectMonitor({ projectId }: { projectId: string }) {
-  const { events, isConnected, clearEvents } = useProgress(
-    projectId,
-    (event) => {
-      console.log('項目事件:', event);
-    }
-  );
-
-  // 事件統計
-  const taskEvents = events.filter(e => e.type.startsWith('task_'));
-  const workflowEvents = events.filter(e => e.type.startsWith('workflow_'));
-  const containerEvents = events.filter(e => e.type.startsWith('container_'));
-
-  return (
-    <div>
-      <h2>項目監控</h2>
-      <p>項目 ID: {projectId}</p>
-      <p>連接狀態: {isConnected ? '已連接' : '未連接'}</p>
-
-      <div className="stats">
-        <div>任務事件: {taskEvents.length}</div>
-        <div>工作流事件: {workflowEvents.length}</div>
-        <div>容器事件: {containerEvents.length}</div>
-      </div>
-
-      <div>
-        <h3>最近事件</h3>
-        <ul>
-          {events.slice(-10).map((event, index) => (
-            <li key={index}>
-              <span>{event.type}</span>
-              <span>{new Date(event.timestamp).toLocaleTimeString()}</span>
-              {event.data && <pre>{JSON.stringify(event.data, null, 2)}</pre>}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <button onClick={clearEvents}>清除事件</button>
-    </div>
-  );
-}
-```
-
-## 使用進度追蹤組件
-
-SDK 提供了預構建的進度追蹤組件：
-
-### ProgressTracker 組件
-
-```tsx
-import { ProgressTracker } from '@aintandem/sdk-react/components';
-
-function TaskMonitor({ projectId, taskId }: { projectId: string; taskId: string }) {
-  return (
-    <ProgressTracker
-      projectId={projectId}
-      taskId={taskId}
-      showEvents={true}
-      maxEvents={50}
-      loadingMessage="正在連接..."
-      emptyMessage="暫無進度事件"
-    />
-  );
-}
-```
-
-### CompactProgressTracker 組件
-
-```tsx
-import { CompactProgressTracker } from '@aintandem/sdk-react/components';
-
-function TaskCard({ projectId, taskId }: { projectId: string; taskId: string }) {
-  return (
-    <div className="task-card">
-      <h3>任務執行中</h3>
-      <CompactProgressTracker
-        projectId={projectId}
-        taskId={taskId}
-      />
-    </div>
-  );
-}
-```
-
-### 自定義進度顯示
-
-```tsx
-import { useTaskProgress, ProgressBar, CircularProgress } from '@aintandem/sdk-react';
-
-function CustomTaskProgress({ projectId, taskId }: { projectId: string; taskId: string }) {
-  const { events, isConnected } = useTaskProgress(projectId, taskId);
-
-  // 獲取最新進度
-  const progressEvents = events.filter(e => e.type === 'task_progress');
-  const latestProgress = progressEvents[progressEvents.length - 1];
-  const progress = latestProgress?.data.percent || 0;
-
-  // 獲取當前狀態
-  const latestEvent = events[events.length - 1];
-  const status = latestEvent?.type || 'unknown';
-
-  return (
-    <div className="custom-progress">
-      <div className="header">
-        <h3>任務進度</h3>
-        <span className={`status ${status}`}>
-          {status === 'task_completed' && '✅ 已完成'}
-          {status === 'task_failed' && '❌ 失敗'}
-          {status === 'task_running' && '🔄 執行中'}
-          {status === 'task_pending' && '⏳ 等待中'}
-        </span>
-      </div>
-
-      <div className="progress-bars">
-        <div className="linear-progress">
-          <ProgressBar value={progress} showLabel />
-        </div>
-
-        <div className="circular-progress">
-          <CircularProgress value={progress} size={120} />
-        </div>
-      </div>
-
-      {latestProgress && (
-        <div className="details">
-          <p>當前步驟: {latestProgress.data.currentStep}</p>
-          <p>總步驟: {latestProgress.data.totalSteps}</p>
-          <p>預估剩餘時間: {latestProgress.data.estimatedTimeRemaining || '計算中...'}</p>
-        </div>
-      )}
-
-      {!isConnected && (
-        <div className="warning">
-          ⚠️ 連接中斷，正在重新連接...
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-## 事件類型詳解
-
-### TaskEvent（任務事件）
+### TaskEvent (Task Events)
 
 ```typescript
 type TaskEvent =
-  | TaskStartedEvent
-  | TaskProgressEvent
-  | TaskCompletedEvent
-  | TaskFailedEvent;
+  | TaskQueuedEvent        // Task added to queue
+  | TaskStartedEvent       // Task started execution
+  | TaskStepProgressEvent  // Step progress update
+  | TaskOutputEvent        // Terminal output fragment
+  | TaskArtifactEvent      // Artifact file detected
+  | TaskCompletedEvent     // Task completed
+  | TaskFailedEvent        // Task failed
+  | TaskCancelledEvent;    // Task cancelled
 
-// 任務開始
+// Task added to queue
+interface TaskQueuedEvent {
+  type: 'task_queued';
+  timestamp: string;
+  projectId: string;
+  taskId: string;
+  task?: string;
+  input?: Record<string, unknown>;
+}
+
+// Task started
 interface TaskStartedEvent {
   type: 'task_started';
   timestamp: string;
   projectId: string;
   taskId: string;
-  data: {
-    taskName: string;
-    input: any;
-  };
+  task?: string;
 }
 
-// 任務進度
-interface TaskProgressEvent {
-  type: 'task_progress';
+// Step progress update
+interface TaskStepProgressEvent {
+  type: 'step_progress';
   timestamp: string;
   projectId: string;
   taskId: string;
-  data: {
-    percent: number;           // 0-100
-    currentStep: string;
-    totalSteps: number;
-    message?: string;
-    estimatedTimeRemaining?: number; // 秒
+  stepId?: string;
+  step?: string;
+  status: StepExecutionStatus;
+  message?: string;
+  progress?: number;
+  output?: unknown;
+}
+
+// Terminal output fragment
+interface TaskOutputEvent {
+  type: 'output';
+  timestamp: string;
+  projectId: string;
+  taskId: string;
+  stepId?: string;
+  output: string;
+}
+
+// Artifact file detected
+interface TaskArtifactEvent {
+  type: 'artifact';
+  timestamp: string;
+  projectId: string;
+  taskId: string;
+  artifact: {
+    path: string;
+    type: string;
+    size?: number;
   };
 }
 
-// 任務完成
+// Task completed
 interface TaskCompletedEvent {
   type: 'task_completed';
   timestamp: string;
   projectId: string;
   taskId: string;
-  data: {
-    output: any;
-    duration: number; // 毫秒
-  };
+  task?: string;
+  output?: unknown;
+  duration?: number;
 }
 
-// 任務失敗
+// Task failed
 interface TaskFailedEvent {
   type: 'task_failed';
   timestamp: string;
   projectId: string;
   taskId: string;
-  data: {
-    error: string;
-    errorCode?: string;
-    stackTrace?: string;
-  };
+  task?: string;
+  error?: string;
+  output?: unknown;
+}
+
+// Task cancelled
+interface TaskCancelledEvent {
+  type: 'task_cancelled';
+  timestamp: string;
+  projectId: string;
+  taskId: string;
+  task?: string;
 }
 ```
 
-### WorkflowEvent（工作流事件）
+### WorkflowEvent (Workflow Events)
 
 ```typescript
 type WorkflowEvent =
-  | WorkflowStartedEvent
-  | PhaseStartedEvent
-  | PhaseCompletedEvent
-  | StepStartedEvent
-  | StepCompletedEvent
-  | WorkflowCompletedEvent
-  | WorkflowFailedEvent;
+  | WorkflowExecutionCreatedEvent
+  | WorkflowExecutionStartedEvent
+  | WorkflowPhaseStartedEvent
+  | WorkflowPhaseCompletedEvent
+  | WorkflowExecutionCompletedEvent
+  | WorkflowExecutionFailedEvent
+  | WorkflowExecutionPausedEvent
+  | WorkflowExecutionResumedEvent;
 
-// 工作流開始
-interface WorkflowStartedEvent {
-  type: 'workflow_started';
+// Workflow execution created
+interface WorkflowExecutionCreatedEvent {
+  type: 'workflow_execution_created';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    input: any;
-    totalPhases: number;
-    totalSteps: number;
-  };
+  workflowId: string;
+  input?: Record<string, unknown>;
 }
 
-// 階段開始
-interface PhaseStartedEvent {
-  type: 'phase_started';
+// Workflow execution started
+interface WorkflowExecutionStartedEvent {
+  type: 'workflow_execution_started';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    phaseId: string;
-    phaseName: string;
-    stepCount: number;
-  };
+  workflowId: string;
 }
 
-// 階段完成
-interface PhaseCompletedEvent {
-  type: 'phase_completed';
+// Phase started
+interface WorkflowPhaseStartedEvent {
+  type: 'workflow_phase_started';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    phaseId: string;
-    phaseName: string;
-    duration: number;
-  };
+  workflowId: string;
+  phaseId: string;
+  phase?: string;
 }
 
-// 步驟開始
-interface StepStartedEvent {
-  type: 'step_started';
+// Phase completed
+interface WorkflowPhaseCompletedEvent {
+  type: 'workflow_phase_completed';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    stepId: string;
-    stepName: string;
-    taskName: string;
-  };
+  workflowId: string;
+  phaseId: string;
+  phase?: string;
+  output?: unknown;
 }
 
-// 步驟完成
-interface StepCompletedEvent {
-  type: 'step_completed';
+// Workflow execution completed
+interface WorkflowExecutionCompletedEvent {
+  type: 'workflow_execution_completed';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    stepId: string;
-    stepName: string;
-    duration: number;
-    output?: any;
-  };
+  workflowId: string;
+  output?: unknown;
+  duration?: number;
 }
 
-// 工作流完成
-interface WorkflowCompletedEvent {
-  type: 'workflow_completed';
+// Workflow execution failed
+interface WorkflowExecutionFailedEvent {
+  type: 'workflow_execution_failed';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    output: any;
-    duration: number;
-    completedPhases: number;
-    completedSteps: number;
-  };
+  workflowId: string;
+  error?: string;
 }
 
-// 工作流失敗
-interface WorkflowFailedEvent {
-  type: 'workflow_failed';
+// Workflow execution paused
+interface WorkflowExecutionPausedEvent {
+  type: 'workflow_execution_paused';
   timestamp: string;
   projectId: string;
-  workflowId: string;
   executionId: string;
-  data: {
-    error: string;
-    failedPhase?: string;
-    failedStep?: string;
-  };
+  workflowId: string;
+}
+
+// Workflow execution resumed
+interface WorkflowExecutionResumedEvent {
+  type: 'workflow_execution_resumed';
+  timestamp: string;
+  projectId: string;
+  executionId: string;
+  workflowId: string;
 }
 ```
 
-## 完整範例
+### SandboxEvent (Sandbox Events)
 
-### 核心 SDK 進度追蹤
+```typescript
+type SandboxEvent =
+  | SandboxCreatedEvent
+  | SandboxStartedEvent
+  | SandboxStoppedEvent
+  | SandboxErrorEvent;
+
+// Sandbox created
+interface SandboxCreatedEvent {
+  type: 'sandbox_created';
+  timestamp: string;
+  projectId: string;
+  sandboxId: string;
+  image?: string;
+}
+
+// Sandbox started
+interface SandboxStartedEvent {
+  type: 'sandbox_started';
+  timestamp: string;
+  projectId: string;
+  sandboxId: string;
+}
+
+// Sandbox stopped
+interface SandboxStoppedEvent {
+  type: 'sandbox_stopped';
+  timestamp: string;
+  projectId: string;
+  sandboxId: string;
+  exitCode?: number;
+}
+
+// Sandbox operation error
+interface SandboxErrorEvent {
+  type: 'sandbox_error';
+  timestamp: string;
+  projectId: string;
+  sandboxId: string;
+  error?: string;
+}
+```
+
+## Complete Examples
+
+### Core SDK Progress Tracking
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -644,7 +439,11 @@ class ProgressTracker {
     });
   }
 
-  // 追蹤任務並等待完成
+  async login(username: string, password: string) {
+    await this.client.auth.login({ username, password });
+  }
+
+  // Track task and wait for completion
   async trackTask(projectId: string, taskId: string): Promise<any> {
     return new Promise((resolve, reject) => {
       let completed = false;
@@ -654,161 +453,155 @@ class ProgressTracker {
         taskId,
         (event) => {
           if (!completed) {
-            console.log(`[${event.type}]`, event.data);
+            console.log(`[${event.type}]`, event);
           }
         },
         (event) => {
           completed = true;
-          console.log('任務完成:', event.output);
+          console.log('Task completed:', event.output);
           resolve(event.output);
         },
         (event) => {
           completed = true;
-          console.error('任務失敗:', event.error);
+          console.error('Task failed:', event.error);
           reject(new Error(event.error));
         }
       );
     });
   }
 
-  // 追蹤工作流並等待完成
-  async trackWorkflow(
-    projectId: string,
-    workflowId: string,
-    executionId: string
-  ): Promise<any> {
+  // Track sandbox operation
+  async trackSandboxOperation(projectId: string, sandboxId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       let completed = false;
 
-      this.client.subscribeToWorkflow(
+      this.client.subscribeToSandbox(
         projectId,
-        workflowId,
-        executionId,
         (event) => {
           if (!completed) {
-            console.log(`[${event.type}]`, event.data);
+            console.log(`[${event.type}]`, event);
+          }
+
+          // When sandbox started
+          if (event.type === 'sandbox_started') {
+            completed = true;
+            resolve();
+          }
+
+          // When error occurs
+          if (event.type === 'sandbox_error') {
+            completed = true;
+            reject(new Error(event.error));
           }
         },
-        (event) => {
-          completed = true;
-          console.log('工作流完成:', event.output);
-          resolve(event.output);
-        },
-        (event) => {
-          completed = true;
-          console.error('工作流失敗:', event.error);
-          reject(new Error(event.error));
-        }
+        sandboxId
       );
     });
   }
 }
 
-// 使用
+// Usage
 const tracker = new ProgressTracker();
+await tracker.login('user', 'pass');
 
+// Track task
 const result = await tracker.trackTask('project-123', 'task-id');
-console.log('最終結果:', result);
+console.log('Final result:', result);
+
+// Track sandbox operation
+await tracker.trackSandboxOperation('project-123', 'sandbox-id');
 ```
 
-### React 進度追蹤介面
-
-```tsx
-import { AInTandemProvider } from '@aintandem/sdk-react';
-import { useTaskProgress, useExecuteTask } from '@aintandem/sdk-react';
-import { ProgressTracker } from '@aintandem/sdk-react/components';
-
-function App() {
-  return (
-    <AInTandemProvider config={{ baseURL: 'https://api.aintandem.com' }}>
-      <TaskMonitor />
-    </AInTandemProvider>
-  );
-}
-
-function TaskMonitor() {
-  const projectId = 'project-123';
-  const { execute, task } = useExecuteTask(
-    projectId,
-    'data-analysis',
-    { dataset: 'sales-2024' }
-  );
-
-  return (
-    <div>
-      <button onClick={execute} disabled={!!task}>
-        {task ? '任務執行中' : '執行任務'}
-      </button>
-
-      {task && (
-        <ProgressTracker
-          projectId={projectId}
-          taskId={task.id}
-          showEvents
-        />
-      )}
-    </div>
-  );
-}
-```
-
-## 連接狀態管理
-
-### 處理連接中斷
+### Real-time Terminal Output Display
 
 ```typescript
-import { useTaskProgress } from '@aintandem/sdk-react';
+import { AInTandemClient } from '@aintandem/sdk-core';
 
-function RobustTaskProgress({ projectId, taskId }: { projectId: string; taskId: string }) {
-  const { events, isConnected, clearEvents } = useTaskProgress(projectId, taskId);
+const client = new AInTandemClient({
+  baseURL: 'https://api.aintandem.com',
+});
 
-  return (
-    <div>
-      <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
-        <span className="dot" />
-        <span>{isConnected ? '已連接' : '連接中斷 - 正在重新連接...'}</span>
-      </div>
+// Subscribe to task and receive real-time output
+await client.subscribeToTask(
+  'project-123',
+  'task-id',
+  (event) => {
+    // Handle output event
+    if (event.type === 'output') {
+      // Append output to terminal
+      console.log(event.output);
+      // Or update UI display
+      updateTerminalDisplay(event.output);
+    }
 
-      {!isConnected && (
-        <div className="warning">
-          ⚠️ 實時更新暫時不可用，請稍候或刷新頁面
-        </div>
-      )}
-
-      {/* 事件列表 */}
-      <ul>
-        {events.map((event, index) => (
-          <li key={index}>{event.type}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+    // Handle artifact file
+    if (event.type === 'artifact') {
+      console.log('Artifact file detected:', event.artifact);
+      updateArtifactsList(event.artifact);
+    }
+  }
+);
 ```
 
-## 下一步
+## Connection State Management
 
-- [任務執行](./tasks.md) - 了解如何執行任務
-- [工作流管理](./workflows.md) - 了解如何管理工作流
+### Monitor Connection State Changes
 
-## 常見問題
+```typescript
+// Get Progress Client
+const progress = client.getProgress();
 
-### Q: WebSocket 連接會自動重連嗎？
+// Subscribe to connection state changes
+const unsubscribe = progress.onConnectionState(
+  'project-123',
+  (event) => {
+    if (event.type === 'connected') {
+      console.log('WebSocket connected');
+    } else if (event.type === 'disconnected') {
+      console.log('WebSocket disconnected:', event.reason);
+      console.log('Will reconnect:', event.willReconnect);
+    } else if (event.type === 'error') {
+      console.error('WebSocket error:', event.error);
+    }
+  }
+);
 
-是的，SDK 會自動嘗試重新連接。
+// Unsubscribe later
+unsubscribe();
+```
 
-### Q: 如何知道進度訂閱已失敗？
+## Next Steps
 
-使用 `isConnected` 狀態或監聽錯誤回調。
+- [Task Execution](./tasks.md) - Learn how to execute tasks
+- [Workflow Management](./workflows.md) - Learn how to manage workflows
+- [Sandbox Operations](./sandbox.md) - Learn how to manage sandboxes (if exists)
 
-### Q: 可以同時訂閱多個任務嗎？
+## FAQ
 
-可以。每個訂閱都是獨立的。
+### Q: Do WebSocket connections automatically reconnect?
 
-### Q: 事件歷史會保存多久？
+Yes, the SDK automatically attempts to reconnect, up to 10 retries, using exponential backoff strategy.
 
-事件存儲在內存中，組件卸載時會清除。可以手動調用 `clearEvents()` 清除。
+### Q: How to know if progress subscription failed?
+
+Use `onConnectionState` to monitor connection state, or check `isConnected(projectId)`.
+
+### Q: Can I subscribe to multiple tasks simultaneously?
+
+Yes. Each subscription is independent. The SDK establishes one WebSocket connection per project.
+
+### Q: How long is event history saved?
+
+Events are stored in memory and deleted when connection is disconnected or manually cleared.
+
+### Q: Is projectId required?
+
+Yes. The Orchestrator API's WebSocket endpoint requires projectId as a path parameter.
+
+### Q: Can I listen to events across projects?
+
+Yes. Create independent subscriptions for each project. The SDK manages multiple WebSocket connections.
 
 ---
 
-**祝您使用愉快！** 📡
+**Happy coding!** 📡

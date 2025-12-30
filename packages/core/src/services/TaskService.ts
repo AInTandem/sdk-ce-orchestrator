@@ -55,21 +55,23 @@ export class TaskService {
   /**
    * Execute a predefined task
    *
+   * @param projectId - Project ID
    * @param request - Task execution request
    * @returns Task response with ID and status
    */
-  async executeTask(request: ExecuteTaskRequest): Promise<TaskResponse> {
-    return this.httpClient.post<TaskResponse>('/api/tasks/execute', request);
+  async executeTask(projectId: string, request: ExecuteTaskRequest): Promise<TaskResponse> {
+    return this.httpClient.post<TaskResponse>(`/api/projects/${projectId}/tasks`, request);
   }
 
   /**
    * Execute an ad-hoc task with a prompt
    *
+   * @param projectId - Project ID
    * @param request - Ad-hoc task request
    * @returns Task response
    */
-  async executeAdhocTask(request: ExecuteAdhocTaskRequest): Promise<TaskResponse> {
-    return this.httpClient.post<TaskResponse>('/api/tasks/adhoc', request);
+  async executeAdhocTask(projectId: string, request: ExecuteAdhocTaskRequest): Promise<TaskResponse> {
+    return this.httpClient.post<TaskResponse>(`/api/projects/${projectId}/tasks/adhoc`, request);
   }
 
   /**
@@ -80,7 +82,7 @@ export class TaskService {
    * @returns Task details
    */
   async getTaskStatus(projectId: string, taskId: string): Promise<TaskResponse> {
-    return this.httpClient.get<TaskResponse>(`/api/tasks/${projectId}/${taskId}`);
+    return this.httpClient.get<TaskResponse>(`/api/projects/${projectId}/tasks/${taskId}`);
   }
 
   /**
@@ -95,7 +97,7 @@ export class TaskService {
     taskId: string
   ): Promise<TaskCancellationResponse> {
     return this.httpClient.post<TaskCancellationResponse>(
-      `/api/tasks/${projectId}/${taskId}/cancel`,
+      `/api/projects/${projectId}/tasks/${taskId}/cancel`,
       {}
     );
   }
@@ -112,7 +114,7 @@ export class TaskService {
     taskId: string
   ): Promise<TaskContextResponse> {
     return this.httpClient.get<TaskContextResponse>(
-      `/api/tasks/${projectId}/${taskId}/context`
+      `/api/projects/${projectId}/tasks/${taskId}/context`
     );
   }
 
@@ -140,7 +142,7 @@ export class TaskService {
 
     const queryString = params.toString();
     return this.httpClient.get<TaskResponse[]>(
-      `/api/tasks/${projectId}/history${queryString ? `?${queryString}` : ''}`
+      `/api/projects/${projectId}/tasks${queryString ? `?${queryString}` : ''}`
     );
   }
 
@@ -152,7 +154,7 @@ export class TaskService {
    * @returns Task details
    */
   async getTask(projectId: string, taskId: string): Promise<TaskResponse> {
-    return this.httpClient.get<TaskResponse>(`/api/tasks/${projectId}/${taskId}`);
+    return this.httpClient.get<TaskResponse>(`/api/projects/${projectId}/tasks/${taskId}`);
   }
 
   // ========================================================================
@@ -167,7 +169,7 @@ export class TaskService {
    */
   async getQueueStatus(projectId: string): Promise<TaskLimitResponse> {
     return this.httpClient.get<TaskLimitResponse>(
-      `/api/tasks/${projectId}/queue/status`
+      `/api/projects/${projectId}/task-queue-status`
     );
   }
 
@@ -182,8 +184,8 @@ export class TaskService {
     projectId: string,
     request: SetTaskLimitRequest
   ): Promise<TaskLimitResponse> {
-    return this.httpClient.put<TaskLimitResponse>(
-      `/api/tasks/${projectId}/queue/limit`,
+    return this.httpClient.post<TaskLimitResponse>(
+      `/api/projects/${projectId}/task-limits`,
       request
     );
   }
@@ -206,7 +208,7 @@ export class TaskService {
     request: SaveTaskOutputRequest
   ): Promise<SaveTaskOutputResponse> {
     return this.httpClient.post<SaveTaskOutputResponse>(
-      `/api/tasks/${projectId}/${taskId}/output`,
+      `/api/projects/${projectId}/tasks/${taskId}/context/save`,
       request
     );
   }
@@ -219,7 +221,7 @@ export class TaskService {
    * @returns Task output
    */
   async getTaskOutput(projectId: string, taskId: string): Promise<unknown> {
-    return this.httpClient.get<unknown>(`/api/tasks/${projectId}/${taskId}/output`);
+    return this.httpClient.get<unknown>(`/api/projects/${projectId}/tasks/${taskId}/output`);
   }
 
   // ========================================================================
@@ -240,7 +242,7 @@ export class TaskService {
     request: CaptureTaskDialogRequest
   ): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/tasks/${projectId}/${taskId}/dialog`,
+      `/api/projects/${projectId}/tasks/${taskId}/dialog`,
       request
     );
   }
@@ -263,7 +265,7 @@ export class TaskService {
     request: UpdateStepStatusRequest
   ): Promise<TaskResponse> {
     return this.httpClient.patch<TaskResponse>(
-      `/api/tasks/${projectId}/${taskId}/step`,
+      `/api/projects/${projectId}/tasks/${taskId}/step`,
       request
     );
   }
@@ -282,7 +284,57 @@ export class TaskService {
     stepId: string
   ): Promise<TaskStep> {
     return this.httpClient.get<TaskStep>(
-      `/api/tasks/${projectId}/${taskId}/steps/${stepId}`
+      `/api/projects/${projectId}/tasks/${taskId}/steps/${stepId}`
+    );
+  }
+
+  // ========================================================================
+  // Workflow Step Execution
+  // ========================================================================
+
+  /**
+   * Execute a workflow step as a task
+   *
+   * @param projectId - Project ID
+   * @param stepId - Step ID
+   * @param request - Execution request
+   * @returns Execution response with task ID
+   */
+  async executeWorkflowStep(
+    projectId: string,
+    stepId: string,
+    request?: { additionalInput?: string; parameters?: Record<string, unknown> }
+  ): Promise<{ taskId: string; message: string; stepId: string }> {
+    return this.httpClient.post<{ taskId: string; message: string; stepId: string }>(
+      `/api/projects/${projectId}/workflow/steps/${stepId}/execute`,
+      request || {}
+    );
+  }
+
+  // ========================================================================
+  // Context Management
+  // ========================================================================
+
+  /**
+   * Get relevant context for a task prompt
+   *
+   * @param projectId - Project ID
+   * @param request - Context request
+   * @returns Relevant context memories
+   */
+  async getRelevantContext(
+    projectId: string,
+    request: {
+      prompt: string;
+      maxMemories?: number;
+      types?: string[];
+      includeWorkspace?: boolean;
+      includeOrg?: boolean;
+    }
+  ): Promise<{ memories: unknown[] }> {
+    return this.httpClient.post<{ memories: unknown[] }>(
+      `/api/projects/${projectId}/tasks/context/relevant`,
+      request
     );
   }
 
@@ -298,7 +350,7 @@ export class TaskService {
    */
   async getAsyncOperation(operationId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.get<AsyncOperationResponse>(
-      `/api/operations/${operationId}`
+      `/api/flexy/operations/${operationId}`
     );
   }
 
@@ -310,7 +362,7 @@ export class TaskService {
    */
   async cancelAsyncOperation(operationId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/operations/${operationId}/cancel`,
+      `/api/flexy/operations/${operationId}/cancel`,
       {}
     );
   }

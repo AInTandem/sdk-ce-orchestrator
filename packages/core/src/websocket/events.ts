@@ -4,7 +4,7 @@
  * Type definitions for WebSocket progress events.
  */
 
-import type { OperationStepStatus } from '../types/generated/index.js';
+import type { StepExecutionStatus } from '../types/generated/index.js';
 
 // ============================================================================
 // Base Event Types
@@ -50,10 +50,34 @@ export interface TaskStepProgressEvent extends WebSocketEvent {
   taskId: string;
   stepId?: string;
   step?: string;
-  status: OperationStepStatus;
+  status: StepExecutionStatus;
   message?: string;
   progress?: number;
   output?: unknown;
+}
+
+/**
+ * Task output event (streaming terminal output)
+ */
+export interface TaskOutputEvent extends WebSocketEvent {
+  type: 'output';
+  taskId: string;
+  stepId?: string;
+  output: string;
+  timestamp: string;
+}
+
+/**
+ * Task artifact detected event
+ */
+export interface TaskArtifactEvent extends WebSocketEvent {
+  type: 'artifact';
+  taskId: string;
+  artifact: {
+    path: string;
+    type: string;
+    size?: number;
+  };
 }
 
 /**
@@ -173,44 +197,44 @@ export interface WorkflowExecutionResumedEvent extends WebSocketEvent {
 }
 
 // ============================================================================
-// Container Events
+// Sandbox Events
 // ============================================================================
 
 /**
- * Container created event
+ * Sandbox created event
  */
-export interface ContainerCreatedEvent extends WebSocketEvent {
-  type: 'container_created';
-  containerId: string;
+export interface SandboxCreatedEvent extends WebSocketEvent {
+  type: 'sandbox_created';
+  sandboxId: string;
   projectId: string;
   image?: string;
 }
 
 /**
- * Container started event
+ * Sandbox started event
  */
-export interface ContainerStartedEvent extends WebSocketEvent {
-  type: 'container_started';
-  containerId: string;
+export interface SandboxStartedEvent extends WebSocketEvent {
+  type: 'sandbox_started';
+  sandboxId: string;
   projectId: string;
 }
 
 /**
- * Container stopped event
+ * Sandbox stopped event
  */
-export interface ContainerStoppedEvent extends WebSocketEvent {
-  type: 'container_stopped';
-  containerId: string;
+export interface SandboxStoppedEvent extends WebSocketEvent {
+  type: 'sandbox_stopped';
+  sandboxId: string;
   projectId: string;
   exitCode?: number;
 }
 
 /**
- * Container error event
+ * Sandbox error event
  */
-export interface ContainerErrorEvent extends WebSocketEvent {
-  type: 'container_error';
-  containerId: string;
+export interface SandboxErrorEvent extends WebSocketEvent {
+  type: 'sandbox_error';
+  sandboxId: string;
   projectId: string;
   error?: string;
 }
@@ -267,6 +291,8 @@ export type TaskEvent =
   | TaskQueuedEvent
   | TaskStartedEvent
   | TaskStepProgressEvent
+  | TaskOutputEvent
+  | TaskArtifactEvent
   | TaskCompletedEvent
   | TaskFailedEvent
   | TaskCancelledEvent;
@@ -285,18 +311,18 @@ export type WorkflowEvent =
   | WorkflowExecutionResumedEvent;
 
 /**
- * All container-related events
+ * All sandbox-related events
  */
-export type ContainerEvent =
-  | ContainerCreatedEvent
-  | ContainerStartedEvent
-  | ContainerStoppedEvent
-  | ContainerErrorEvent;
+export type SandboxEvent =
+  | SandboxCreatedEvent
+  | SandboxStartedEvent
+  | SandboxStoppedEvent
+  | SandboxErrorEvent;
 
 /**
  * All progress events
  */
-export type ProgressEvent = TaskEvent | WorkflowEvent | ContainerEvent;
+export type ProgressEvent = TaskEvent | WorkflowEvent | SandboxEvent;
 
 /**
  * All WebSocket events (including connection events)
@@ -327,10 +353,10 @@ export function isWorkflowEvent(event: WSMessage): event is WorkflowEvent {
 }
 
 /**
- * Type guard for container events
+ * Type guard for sandbox events
  */
-export function isContainerEvent(event: WSMessage): event is ContainerEvent {
-  return event.type.startsWith('container_');
+export function isSandboxEvent(event: WSMessage): event is SandboxEvent {
+  return event.type.startsWith('sandbox_');
 }
 
 /**
@@ -340,7 +366,7 @@ export function isProgressEvent(event: WSMessage): event is ProgressEvent {
   return (
     isTaskEvent(event) ||
     isWorkflowEvent(event) ||
-    isContainerEvent(event)
+    isSandboxEvent(event)
   );
 }
 
@@ -359,9 +385,9 @@ export type TaskEventListener = (event: TaskEvent) => void;
 export type WorkflowEventListener = (event: WorkflowEvent) => void;
 
 /**
- * Container event listener
+ * Sandbox event listener
  */
-export type ContainerEventListener = (event: ContainerEvent) => void;
+export type SandboxEventListener = (event: SandboxEvent) => void;
 
 /**
  * Progress event listener
@@ -388,6 +414,6 @@ export type ConnectionEventListener = (
 export type WebSocketEventListener =
   | TaskEventListener
   | WorkflowEventListener
-  | ContainerEventListener
+  | SandboxEventListener
   | ProgressEventListener
   | ConnectionEventListener;

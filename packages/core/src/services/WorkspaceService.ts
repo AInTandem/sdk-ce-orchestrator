@@ -231,9 +231,13 @@ export class WorkspaceService {
    * Delete a project
    *
    * @param projectId - Project ID
+   * @param deleteFolder - Whether to delete the project folder (default: false)
    */
-  async deleteProject(projectId: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/projects/${projectId}`);
+  async deleteProject(projectId: string, deleteFolder?: boolean): Promise<void> {
+    const url = deleteFolder !== undefined
+      ? `/api/projects/${projectId}?deleteFolder=${String(deleteFolder)}`
+      : `/api/projects/${projectId}`;
+    return this.httpClient.delete<void>(url);
   }
 
   /**

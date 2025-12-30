@@ -1,43 +1,43 @@
 # Real-time Progress Tracking Example
 
-這是一個專注於展示實時進度追蹤功能的範例。
+This is an example focused on demonstrating real-time progress tracking functionality.
 
-## 功能展示
+## Features Demonstrated
 
-本範例重點展示：
+This example focuses on:
 
-1. **WebSocket 連接管理** - 自動連接和重連
-2. **任務進度追蹤** - useTaskProgress hook
-3. **工作流進度追蹤** - useWorkflowProgress hook
-4. **容器進度追蹤** - useContainerProgress hook
-5. **項目進度監控** - useProgress hook
-6. **進度組件** - ProgressBar, CircularProgress, ProgressTracker
-7. **連接狀態** - isConnected 監控
-8. **事件管理** - 事件累積和清除
+1. **WebSocket Connection Management** - Automatic connection and reconnection
+2. **Task Progress Tracking** - useTaskProgress hook
+3. **Workflow Progress Tracking** - useWorkflowProgress hook
+4. **Container Progress Tracking** - useContainerProgress hook
+5. **Project Progress Monitoring** - useProgress hook
+6. **Progress Components** - ProgressBar, CircularProgress, ProgressTracker
+7. **Connection Status** - isConnected monitoring
+8. **Event Management** - Event accumulation and clearing
 
-## 快速開始
+## Quick Start
 
-### 安裝依賴
+### Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 運行範例
+### Run Example
 
 ```bash
-# React 範例（推薦）
+# React example (recommended)
 cd ../react-app
 pnpm dev
 
-# 或使用基礎範例
+# Or use basic example
 cd ../basic-usage
 pnpm dev
 ```
 
-## 關鍵概念
+## Key Concepts
 
-### 1. 進度追蹤基礎
+### 1. Progress Tracking Basics
 
 ```typescript
 import { useTaskProgress } from '@aintandem/sdk-react';
@@ -55,15 +55,15 @@ function MyComponent() {
 
   return (
     <div>
-      <p>連接狀態: {isConnected ? '已連接' : '未連接'}</p>
-      <p>事件數量: {events.length}</p>
-      <button onClick={clearEvents}>清除事件</button>
+      <p>Connection Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
+      <p>Event Count: {events.length}</p>
+      <button onClick={clearEvents}>Clear Events</button>
     </div>
   );
 }
 ```
 
-### 2. 進度組件使用
+### 2. Progress Component Usage
 
 ```typescript
 import { ProgressTracker } from '@aintandem/sdk-react/components';
@@ -73,12 +73,12 @@ import { ProgressTracker } from '@aintandem/sdk-react/components';
   taskId={taskId}
   showEvents={true}
   maxEvents={50}
-  loadingMessage="載入中..."
-  emptyMessage="暫無事件"
+  loadingMessage="Loading..."
+  emptyMessage="No events"
 />
 ```
 
-### 3. 自定義進度顯示
+### 3. Custom Progress Display
 
 ```typescript
 import { useTaskProgress, ProgressBar } from '@aintandem/sdk-react';
@@ -86,14 +86,14 @@ import { useTaskProgress, ProgressBar } from '@aintandem/sdk-react';
 function CustomProgress({ projectId, taskId }) {
   const { events, isConnected } = useTaskProgress(projectId, taskId);
 
-  // 提取進度事件
+  // Extract progress events
   const progressEvents = events.filter(e => e.type === 'task_progress');
   const latestProgress = progressEvents[progressEvents.length - 1];
   const progress = latestProgress?.data.percent || 0;
 
   return (
     <div>
-      <p>連接: {isConnected ? '✅' : '❌'}</p>
+      <p>Connection: {isConnected ? '✅' : '❌'}</p>
       <ProgressBar value={progress} showLabel />
       <p>{progress.toFixed(0)}%</p>
     </div>
@@ -101,16 +101,16 @@ function CustomProgress({ projectId, taskId }) {
 }
 ```
 
-## 事件類型
+## Event Types
 
 ### TaskEvent
 
 ```typescript
 type TaskEvent =
-  | TaskStartedEvent          // 任務開始
-  | TaskProgressEvent         // 進度更新
-  | TaskCompletedEvent        // 任務完成
-  | TaskFailedEvent;          // 任務失敗
+  | TaskStartedEvent          // Task started
+  | TaskProgressEvent         // Progress update
+  | TaskCompletedEvent        // Task completed
+  | TaskFailedEvent;          // Task failed
 
 interface TaskProgressEvent {
   type: 'task_progress';
@@ -130,22 +130,22 @@ interface TaskProgressEvent {
 
 ```typescript
 type WorkflowEvent =
-  | WorkflowStartedEvent       // 工作流開始
-  | PhaseStartedEvent          // 階段開始
-  | PhaseCompletedEvent        // 階段完成
-  | StepStartedEvent           // 步驟開始
-  | StepCompletedEvent         // 步驟完成
-  | WorkflowCompletedEvent     // 工作流完成
-  | WorkflowFailedEvent;       // 工作流失敗
+  | WorkflowStartedEvent       // Workflow started
+  | PhaseStartedEvent          // Phase started
+  | PhaseCompletedEvent        // Phase completed
+  | StepStartedEvent           // Step started
+  | StepCompletedEvent         // Step completed
+  | WorkflowCompletedEvent     // Workflow completed
+  | WorkflowFailedEvent;       // Workflow failed
 ```
 
-## 進階用法
+## Advanced Usage
 
-### 1. 監控多個任務
+### 1. Monitor Multiple Tasks
 
 ```typescript
 function MultiTaskMonitor({ projectIds, taskIds }) {
-  // 為每個任務創建監控器
+  // Create monitor for each task
   return (
     <div>
       {taskIds.map(taskId => (
@@ -161,14 +161,14 @@ function MultiTaskMonitor({ projectIds, taskIds }) {
 }
 ```
 
-### 2. 聚合進度
+### 2. Aggregate Progress
 
 ```typescript
 function AggregateProgress({ workflows }) {
   const [totalProgress, setTotalProgress] = useState(0);
 
   useEffect(() => {
-    // 計算所有工作流的總進度
+    // Calculate total progress for all workflows
     const calculateProgress = () => {
       // Your logic here
     };
@@ -183,21 +183,21 @@ function AggregateProgress({ workflows }) {
 }
 ```
 
-### 3. 事件過濾
+### 3. Event Filtering
 
 ```typescript
 function FilteredEvents({ projectId, taskId }) {
   const { events } = useTaskProgress(projectId, taskId);
 
-  // 只顯示進度事件
+  // Show only progress events
   const progressEvents = events.filter(e => e.type === 'task_progress');
 
-  // 只顯示最近 10 個事件
+  // Show only last 10 events
   const recentEvents = events.slice(-10);
 
   return (
     <div>
-      <h3>進度事件 ({progressEvents.length})</h3>
+      <h3>Progress Events ({progressEvents.length})</h3>
       <ul>
         {progressEvents.map((event, i) => (
           <li key={i}>
@@ -210,7 +210,7 @@ function FilteredEvents({ projectId, taskId }) {
 }
 ```
 
-### 4. 連接狀態處理
+### 4. Connection Status Handling
 
 ```typescript
 function ConnectionStatus() {
@@ -219,18 +219,18 @@ function ConnectionStatus() {
   return (
     <div className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
       {isConnected ? (
-        <span>✅ 實時連接正常</span>
+        <span>✅ Real-time connection active</span>
       ) : (
-        <span>⚠️ 連接中斷，正在重新連接...</span>
+        <span>⚠️ Connection lost, reconnecting...</span>
       )}
     </div>
   );
 }
 ```
 
-## 實際應用場景
+## Real-world Use Cases
 
-### 1. 數據處理任務
+### 1. Data Processing Task
 
 ```typescript
 function DataProcessingTask({ projectId }) {
@@ -242,7 +242,7 @@ function DataProcessingTask({ projectId }) {
 
   return (
     <div>
-      <button onClick={execute}>開始處理</button>
+      <button onClick={execute}>Start Processing</button>
       {task && (
         <ProgressTracker
           projectId={projectId}
@@ -255,7 +255,7 @@ function DataProcessingTask({ projectId }) {
 }
 ```
 
-### 2. 模型訓練監控
+### 2. Model Training Monitoring
 
 ```typescript
 function ModelTrainingMonitor({ projectId, taskId }) {
@@ -269,7 +269,7 @@ function ModelTrainingMonitor({ projectId, taskId }) {
 
   return (
     <div>
-      <h3>訓練進度</h3>
+      <h3>Training Progress</h3>
       <ProgressBar value={latestMetrics?.percent || 0} />
       {latestMetrics && (
         <div>
@@ -283,13 +283,13 @@ function ModelTrainingMonitor({ projectId, taskId }) {
 }
 ```
 
-### 3. 批量任務監控
+### 3. Batch Task Monitoring
 
 ```typescript
 function BatchTaskMonitor({ projectId, taskIds }) {
   return (
     <div>
-      <h2>批量任務 ({taskIds.length})</h2>
+      <h2>Batch Tasks ({taskIds.length})</h2>
       <div className="task-grid">
         {taskIds.map(taskId => (
           <div key={taskId} className="task-card">
@@ -306,24 +306,24 @@ function BatchTaskMonitor({ projectId, taskIds }) {
 }
 ```
 
-## 性能優化
+## Performance Optimization
 
-### 1. 事件數量限制
+### 1. Event Count Limitation
 
 ```typescript
-// 只保留最近 100 個事件
+// Keep only last 100 events
 const { events } = useTaskProgress(projectId, taskId);
 const recentEvents = events.slice(-100);
 ```
 
-### 2. 組件卸載時清理
+### 2. Cleanup on Component Unmount
 
 ```typescript
-// Hook 會自動清理，無需手動處理
-// useTaskProgress 在組件卸載時會自動取消訂閱
+// Hook automatically handles cleanup, no manual handling needed
+// useTaskProgress automatically unsubscribes on component unmount
 ```
 
-### 3. 減少重渲染
+### 3. Reduce Re-renders
 
 ```typescript
 import { useMemo } from 'react';
@@ -331,7 +331,7 @@ import { useMemo } from 'react';
 function OptimizedProgress({ projectId, taskId }) {
   const { events } = useTaskProgress(projectId, taskId);
 
-  // 使用 useMemo 減少計算
+  // Use useMemo to reduce calculations
   const progress = useMemo(() => {
     const progressEvents = events.filter(e => e.type === 'task_progress');
     return progressEvents[progressEvents.length - 1]?.data.percent || 0;
@@ -341,54 +341,54 @@ function OptimizedProgress({ projectId, taskId }) {
 }
 ```
 
-## 故障排除
+## Troubleshooting
 
-### 問題：無法連接 WebSocket
+### Problem: Cannot connect to WebSocket
 
-**原因**：
-- 網絡問題
-- 服務器不可用
-- 防火牆阻止
+**Causes**:
+- Network issues
+- Server unavailable
+- Firewall blocking
 
-**解決**：
-1. 檢查網絡連接
-2. 驗證 WebSocket URL
-3. 查看瀏覽器控制台錯誤
+**Solutions**:
+1. Check network connection
+2. Verify WebSocket URL
+3. Check browser console errors
 
-### 問題：事件不更新
+### Problem: Events not updating
 
-**原因**：
-- 任務已完成/失敗
-- WebSocket 斷開
+**Causes**:
+- Task completed/failed
+- WebSocket disconnected
 
-**解決**：
-1. 檢查任務狀態
-2. 查看 isConnected 狀態
-3. 刷新頁面重新連接
+**Solutions**:
+1. Check task status
+2. Check isConnected status
+3. Refresh page to reconnect
 
-### 問題：記憶體洩漏
+### Problem: Memory leak
 
-**原因**：
-- 事件無限累積
+**Causes**:
+- Events accumulating infinitely
 
-**解決**：
+**Solutions**:
 ```typescript
-// 定期清除事件
+// Clear events periodically
 useEffect(() => {
   const interval = setInterval(() => {
     clearEvents();
-  }, 60000); // 每分鐘清除
+  }, 60000); // Clear every minute
 
   return () => clearInterval(interval);
 }, []);
 ```
 
-## 下一步
+## Next Steps
 
-1. 查看 [React 應用範例](../react-app/) - 完整的應用展示
-2. 查看 [基礎使用範例](../basic-usage/) - 核心 SDK 使用
-3. 閱讀 [實時進度追蹤指南](../../docs/guides/real-time-progress.md)
+1. Check the [React Application Example](../react-app/) - Complete application showcase
+2. Check the [Basic Usage Example](../basic-usage/) - Core SDK usage
+3. Read the [Real-time Progress Tracking Guide](../../docs/guides/real-time-progress.md)
 
-## 授權
+## License
 
 MIT © AInTandem

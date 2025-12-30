@@ -1,379 +1,405 @@
-# 快速開始指南
+# Getting Started Guide
 
-本指南將幫助您在 5 分鐘內開始使用 AInTandem TypeScript SDK。
+This guide will help you get started with the AInTandem TypeScript SDK in 5 minutes.
 
-## 安裝
+## Installation
 
-### 使用 npm
+### Using npm
 
 ```bash
-# 核心 SDK
+# Core SDK
 npm install @aintandem/sdk-core
 
-# React 整合
+# React integration
 npm install @aintandem/sdk-react
 ```
 
-### 使用 pnpm
+### Using pnpm
 
 ```bash
-# 核心 SDK
+# Core SDK
 pnpm add @aintandem/sdk-core
 
-# React 整合
+# React integration
 pnpm add @aintandem/sdk-react
 ```
 
-### 使用 yarn
+### Using yarn
 
 ```bash
-# 核心 SDK
+# Core SDK
 yarn add @aintandem/sdk-core
 
-# React 整合
+# React integration
 yarn add @aintandem/sdk-react
 ```
 
-## 基礎配置
+## Basic Configuration
 
-### 1. 初始化客戶端
+### 1. Initialize Client
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
 
-// 創建客戶端實例
+// Create client instance
 const client = new AInTandemClient({
-  baseURL: 'https://api.aintandem.com', // 或您的 API URL
-  timeout: 30000, // 可選：請求超時時間（毫秒）
+  baseURL: 'https://api.aintandem.com', // Or your API URL
+  timeout: 30000, // Optional: Request timeout (milliseconds)
+  retryCount: 3,  // Optional: Number of retries on failure
+  retryDelay: 1000, // Optional: Retry delay (milliseconds)
 });
 ```
 
-### 2. 認證
+### 2. Authentication
 
 ```typescript
-// 登入
+// Login
 const response = await client.auth.login({
   username: 'your-username',
   password: 'your-password',
 });
 
-console.log('登入成功:', response.user);
+console.log('Login successful:', response.user);
+console.log('Token:', response.token);
 
-// 檢查認證狀態
+// Check authentication status
 if (client.auth.isAuthenticated()) {
-  console.log('已認證');
+  console.log('Authenticated');
 }
 
-// 登出
+// Get current token
+const token = client.auth.getToken();
+console.log('Token:', token);
+
+// Logout
 client.auth.logout();
 ```
 
-## 核心功能
+## Core Features
 
-### 1. 獲取工作流列表
+### 1. Get Workflow List
 
 ```typescript
-// 獲取所有已發布的工作流
-const workflows = await client.workflows.listWorkflows('published');
+// Get all published workflows
+const workflows = await client.workflows.listWorkflows();
 
-console.log('工作流列表:', workflows);
+console.log('Workflow list:', workflows);
 
-// 獲取特定工作流
+// Get specific workflow
 const workflow = await client.workflows.getWorkflow('workflow-id');
-console.log('工作流詳情:', workflow);
+console.log('Workflow details:', workflow);
 ```
 
-### 2. 執行任務
+### 2. Execute Task
 
 ```typescript
-// 同步執行任務
-const task = await client.tasks.executeTask({
-  projectId: 'project-123',
-  task: 'data-analysis',
-  input: {
-    dataset: 'sales-2024',
-    analysisType: 'trend',
-  },
-  async: false, // 同步執行
-});
+// Execute task
+const response = await client.tasks.executeTask(
+  'project-123',  // projectId (required)
+  {
+    task: 'data-analysis',
+    input: {
+      dataset: 'sales-2024',
+      analysisType: 'trend',
+    },
+  }
+);
 
-console.log('任務結果:', task.output);
+console.log('Task ID:', response.taskId);
+console.log('Message:', response.message);
 
-// 異步執行任務
-const asyncTask = await client.tasks.executeTask({
-  projectId: 'project-123',
-  task: 'data-analysis',
-  input: { dataset: 'sales-2024' },
-  async: true, // 異步執行
-});
-
-console.log('任務 ID:', asyncTask.id);
+// Get task status
+const task = await client.tasks.getTaskStatus('project-123', response.taskId);
+console.log('Task status:', task.status);
 ```
 
-### 3. 追蹤任務進度
+### 3. Track Task Progress
 
 ```typescript
-// 訂閱實時任務進度
+// Subscribe to real-time task progress
 await client.subscribeToTask(
   'project-123',
-  asyncTask.id,
-  // 進度事件回調
+  'task-id',
+  // Progress event callback
   (event) => {
-    console.log('進度更新:', event);
+    console.log('Progress update:', event.type);
+    // Event types include:
+    // - 'task_queued': Task added to queue
+    // - 'task_started': Task started execution
+    // - 'step_progress': Step progress update
+    // - 'output': Terminal output fragment
+    // - 'artifact': Artifact file detected
+    // - 'task_completed': Task completed
+    // - 'task_failed': Task failed
   },
-  // 完成回調
+  // Completion callback
   (event) => {
-    console.log('任務完成:', event.output);
+    console.log('Task completed:', event.output);
   },
-  // 錯誤回調
+  // Error callback
   (event) => {
-    console.error('任務失敗:', event.error);
+    console.error('Task failed:', event.error);
   }
 );
 ```
 
-### 4. 獲取任務歷史
+### 4. Get Task History
 
 ```typescript
-// 獲取項目的任務歷史
-const history = await client.tasks.getTaskHistory('project-123', {
+// Get task history for project
+const history = await client.tasks.listTaskHistory('project-123', {
   status: 'completed',
   limit: 10,
   offset: 0,
 });
 
-console.log('任務歷史:', history);
+console.log('Task history:', history);
 ```
 
-## React 應用整合
+### 5. Manage Sandboxes
 
-### 1. 設置 Provider
+```typescript
+// List all sandboxes
+const sandboxes = await client.sandboxes.listSandboxes();
+console.log('Sandbox list:', sandboxes);
+
+// Create sandbox
+const sandbox = await client.sandboxes.createSandbox({
+  projectId: 'project-123',
+  name: 'my-sandbox',
+  image: 'python:3.11',
+});
+console.log('Sandbox ID:', sandbox.id);
+
+// Start sandbox asynchronously (recommended for long operations)
+const operation = await client.sandboxes.startSandboxAsync(sandbox.id);
+console.log('Operation ID:', operation.operationId);
+
+// Query operation status
+const status = await client.sandboxes.getOperationStatus(operation.operationId);
+console.log('Operation status:', status.status);
+console.log('Progress:', status.progress.percentage + '%');
+```
+
+## WebSocket Progress Tracking
+
+The SDK provides full WebSocket support for tracking task and sandbox operation progress.
+
+### WebSocket Connection Format
+
+The Orchestrator API WebSocket endpoint format is:
+```
+ws://localhost:9900/api/progress/subscribe/{projectId}?token={jwt}
+```
+
+The SDK automatically handles URL construction and token attachment.
+
+### Using ProgressClient
+
+```typescript
+// Get Progress Client
+const progress = client.getProgress();
+
+// Connect to specific project
+await progress.connect('project-123');
+
+// Subscribe to all progress events for the project
+const subscription = await progress.subscribeToProgress(
+  'project-123',
+  (event) => {
+    console.log('Progress event:', event.type);
+  }
+);
+
+// Unsubscribe
+subscription.unsubscribe();
+
+// Disconnect
+progress.disconnect('project-123');
+```
+
+## Complete Examples
+
+### Basic Task Execution and Tracking
+
+```typescript
+import { AInTandemClient } from '@aintandem/sdk-core';
+
+async function main() {
+  // 1. Initialize client
+  const client = new AInTandemClient({
+    baseURL: 'https://api.aintandem.com',
+  });
+
+  // 2. Login
+  await client.auth.login({ username: 'user', password: 'pass' });
+
+  // 3. Execute task
+  const response = await client.tasks.executeTask(
+    'project-123',
+    {
+      task: 'data-analysis',
+      input: { dataset: 'sales-2024' },
+    }
+  );
+
+  console.log('Task submitted:', response.taskId);
+
+  // 4. Track progress and wait for completion
+  await client.subscribeToTask(
+    'project-123',
+    response.taskId,
+    (event) => {
+      if (event.type === 'output') {
+        console.log('Output:', event.output);
+      } else if (event.type === 'step_progress') {
+        console.log(`Progress: ${event.progress}% - ${event.message}`);
+      }
+    },
+    (event) => {
+      console.log('Task completed:', event.output);
+    },
+    (event) => {
+      console.error('Task failed:', event.error);
+    }
+  );
+}
+
+main().catch(console.error);
+```
+
+### Sandbox Operation Tracking
+
+```typescript
+async function manageSandbox() {
+  const client = new AInTandemClient({
+    baseURL: 'https://api.aintandem.com',
+  });
+
+  await client.auth.login({ username: 'user', password: 'pass' });
+
+  // Create and start sandbox
+  const sandbox = await client.sandboxes.createSandbox({
+    projectId: 'project-123',
+    name: 'analysis-sandbox',
+    image: 'python:3.11',
+  });
+
+  // Start asynchronously
+  const operation = await client.sandboxes.startSandboxAsync(sandbox.id);
+
+  // Track startup progress
+  await client.subscribeToSandbox(
+    'project-123',
+    (event) => {
+      console.log('Sandbox event:', event.type);
+      if (event.type === 'sandbox_started') {
+        console.log('Sandbox started');
+      }
+    },
+    sandbox.id
+  );
+}
+
+manageSandbox().catch(console.error);
+```
+
+## React Application Integration
+
+### 1. Set Up Provider
 
 ```tsx
 import { AInTandemProvider } from '@aintandem/sdk-react';
 
 function App() {
   return (
-    <AInTandemProvider
-      config={{ baseURL: 'https://api.aintandem.com' }}
-      onAuthSuccess={(user) => console.log('Logged in:', user)}
-      onAuthError={(error) => console.error('Auth failed:', error)}
-    >
+    <AInTandemProvider config={{ baseURL: 'https://api.aintandem.com' }}>
       <YourApp />
     </AInTandemProvider>
   );
 }
 ```
 
-### 2. 使用認證 Hook
+### 2. Using Hooks
 
 ```tsx
-import { useAuth } from '@aintandem/sdk-react';
+import { useTaskProgress } from '@aintandem/sdk-react';
 
-function LoginForm() {
-  const { login, isLoading, error } = useAuth();
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    try {
-      await login({
-        username: formData.get('username') as string,
-        password: formData.get('password') as string,
-      });
-    } catch (err) {
-      // Error already handled by hook
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input name="username" placeholder="Username" />
-      <input name="password" type="password" placeholder="Password" />
-      {error && <div className="error">{error.message}</div>}
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? 'Logging in...' : 'Login'}
-      </button>
-    </form>
-  );
-}
-```
-
-### 3. 使用工作流 Hooks
-
-```tsx
-import { useWorkflows } from '@aintandem/sdk-react';
-
-function WorkflowList() {
-  const { workflows, loading, error } = useWorkflows('published');
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <ul>
-      {workflows.map((workflow) => (
-        <li key={workflow.id}>
-          <h3>{workflow.name}</h3>
-          <p>{workflow.description}</p>
-          <span>Status: {workflow.status}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
-### 4. 使用進度追蹤組件
-
-```tsx
-import { useExecuteTask } from '@aintandem/sdk-react';
-import { ProgressTracker } from '@aintandem/sdk-react/components';
-
-function TaskExecutor({ projectId }: { projectId: string }) {
-  const { execute, task, loading } = useExecuteTask(
-    projectId,
-    'data-analysis',
-    { dataset: 'sales-2024' }
-  );
+function TaskMonitor({ taskId }: { taskId: string }) {
+  const { events, isConnected } = useTaskProgress('project-123', taskId);
 
   return (
     <div>
-      <button onClick={execute} disabled={loading || !!task}>
-        {loading ? 'Executing...' : task ? `Task ID: ${task.id}` : 'Execute Task'}
-      </button>
-
-      {task && <ProgressTracker projectId={projectId} taskId={task.id} showEvents />}
+      <p>Connection status: {isConnected ? 'Connected' : 'Disconnected'}</p>
+      <ul>
+        {events.map((event, index) => (
+          <li key={index}>{event.type}: {JSON.stringify(event)}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 ```
 
-## 錯誤處理
+## Error Handling
 
-### 處理 API 錯誤
+The SDK provides comprehensive error handling:
 
 ```typescript
-import { AInTandemError } from '@aintandem/sdk-core';
+import {
+  AInTandemError,
+  NetworkError,
+  AuthError,
+  ApiError,
+  ValidationError,
+} from '@aintandem/sdk-core';
 
 try {
-  const workflow = await client.workflows.getWorkflow('invalid-id');
+  await client.tasks.executeTask('project-123', { task: 'test' });
 } catch (error) {
-  if (error instanceof AInTandemError) {
-    console.error('錯誤代碼:', error.code);
-    console.error('錯誤訊息:', error.message);
-    console.error('HTTP 狀態:', error.statusCode);
-
-    // 處理特定錯誤
-    if (error.code === 'WORKFLOW_NOT_FOUND') {
-      console.log('工作流不存在');
-    }
+  if (error instanceof NetworkError) {
+    console.error('Network error:', error.message);
+  } else if (error instanceof AuthError) {
+    console.error('Authentication error:', error.message);
+  } else if (error instanceof ApiError) {
+    console.error('API error:', error.message, error.statusCode);
+  } else if (error instanceof ValidationError) {
+    console.error('Validation error:', error.message, error.errors);
+  } else {
+    console.error('Unknown error:', error);
   }
 }
 ```
 
-### React 錯誤邊界
+## Next Steps
 
-```tsx
-import { ErrorBoundary } from '@aintandem/sdk-react/components';
+- [Authentication Guide](./authentication.md) - Learn about authentication mechanisms
+- [Task Execution](./tasks.md) - Deep dive into task management
+- [Real-time Progress Tracking](./real-time-progress.md) - Learn about progress tracking features
+- [Workflow Management](./workflows.md) - Learn about workflow operations
 
-function App() {
-  return (
-    <ErrorBoundary
-      fallback={<div>Something went wrong</div>}
-      onError={(error, errorInfo) => {
-        console.error('Caught error:', error);
-        // 發送到錯誤追蹤服務
-      }}
-    >
-      <YourApp />
-    </ErrorBoundary>
-  );
-}
-```
+## FAQ
 
-## TypeScript 類型
+### Q: How to set request timeout?
 
-SDK 提供完整的 TypeScript 類型支持：
+Set the `timeout` parameter when initializing the client (in milliseconds).
 
-```typescript
-import type {
-  AInTandemClientConfig,
-  Workflow,
-  TaskResponse,
-  TaskEvent,
-  LoginRequest,
-  LoginResponse,
-} from '@aintandem/sdk-core';
+### Q: Will token refresh automatically when expired?
 
-// 使用類型
-const config: AInTandemClientConfig = {
-  baseURL: 'https://api.aintandem.com',
-};
+Yes, the SDK automatically detects 401 errors and attempts to refresh the token.
 
-const handleTask = (task: TaskResponse) => {
-  console.log('Task status:', task.status);
-  console.log('Task output:', task.output);
-};
-```
+### Q: Will WebSocket connections automatically reconnect?
 
-## 下一步
+Yes, the SDK automatically reconnects, up to 10 retries.
 
-現在您已經了解基礎用法，可以深入探索：
+### Q: Is projectId required?
 
-- [認證指南](./authentication.md) - 了解完整的認證流程
-- [工作流管理](./workflows.md) - 管理和執行工作流
-- [任務執行](./tasks.md) - 深入了解任務執行
-- [實時進度追蹤](./real-time-progress.md) - WebSocket 進度追蹤詳解
+Yes. All task, sandbox, and progress tracking operations require a project ID.
 
-## 完整範例
+### Q: How to monitor progress for multiple projects?
 
-查看 [範例專案](../examples/) 以獲取更多完整的使用範例：
-
-- [基礎使用](../examples/basic-usage/) - 純 TypeScript/JavaScript 使用
-- [React 應用](../examples/react-app/) - 完整的 React 應用範例
-- [進度追蹤](../examples/progress-tracking/) - 進階進度追蹤功能
-
-## 常見問題
-
-### Q: 如何設置請求超時？
-
-```typescript
-const client = new AInTandemClient({
-  baseURL: 'https://api.aintandem.com',
-  timeout: 30000, // 30 秒
-});
-```
-
-### Q: 如何自動刷新 Token？
-
-SDK 會自動處理 Token 刷新。當 API 返回 401 錯誤時，SDK 會自動嘗試使用 refresh token 獲取新的 access token。
-
-### Q: React Hooks 會自動重新請求數據嗎？
-
-是的，大部分 Hooks 會在組件掛載時自動獲取數據。您可以依賴返回的 `loading` 和 `error` 狀態。
-
-### Q: 如何取消 WebSocket 訂閱？
-
-```typescript
-// 方法 1：使用返回的 unsubscribe 函數
-const unsubscribe = await client.subscribeToTask(...);
-// 稍後取消訂閱
-unsubscribe();
-
-// 方法 2：使用 React Hooks（自動清理）
-const { events } = useTaskProgress(projectId, taskId);
-// 當組件卸載時會自動取消訂閱
-```
-
-## 支援
-
-如有任何問題，請：
-
-1. 查看 [API 參考文檔](../api.md)
-2. 查看 [使用指南](./)
-3. 提交 [Issue](https://github.com/aintandem/typescript-sdk/issues)
+Create independent subscriptions for each project. The SDK manages multiple WebSocket connections.
 
 ---
 
-**享受使用 AInTandem SDK！** 🚀
+**Happy coding!** 🚀

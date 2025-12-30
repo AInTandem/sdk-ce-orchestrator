@@ -18,5 +18,5 @@ export type {
   ProgressSubscription,
   TaskProgressOptions,
   WorkflowProgressOptions,
-  ContainerProgressOptions,
+  SandboxProgressOptions,
 } from './ProgressClient.js';

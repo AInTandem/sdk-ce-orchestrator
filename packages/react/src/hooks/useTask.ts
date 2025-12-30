@@ -119,9 +119,9 @@ export function useTask(projectId: string, taskId: string) {
  */
 export function useExecuteTask(
   projectId: string,
-  taskName: string,
-  input?: Record<string, unknown>,
-  options?: { async?: boolean }
+  stepId: string,
+  prompt: string,
+  parameters?: Record<string, unknown>
 ) {
   const { client } = useAInTandem();
   const [task, setTask] = useState<TaskResponse | null>(null);
@@ -133,11 +133,10 @@ export function useExecuteTask(
     setError(null);
 
     try {
-      const result = await client.tasks.executeTask({
-        projectId,
-        task: taskName,
-        input,
-        async: options?.async ?? true,
+      const result = await client.tasks.executeTask(projectId, {
+        stepId,
+        prompt,
+        parameters,
       });
       setTask(result);
       return result;
@@ -147,7 +146,7 @@ export function useExecuteTask(
     } finally {
       setLoading(false);
     }
-  }, [client, projectId, taskName, input, options]);
+  }, [client, projectId, stepId, prompt, parameters]);
 
   return {
     execute,
@@ -194,15 +193,12 @@ export function useExecuteAdhocTask(projectId: string) {
   const [error, setError] = useState<Error | null>(null);
 
   const execute = useCallback(
-    async (request: Omit<ExecuteAdhocTaskRequest, 'projectId'>) => {
+    async (request: ExecuteAdhocTaskRequest) => {
       setLoading(true);
       setError(null);
 
       try {
-        const result = await client.tasks.executeAdhocTask({
-          ...request,
-          projectId,
-        });
+        const result = await client.tasks.executeAdhocTask(projectId, request);
         setTask(result);
         return result;
       } catch (err) {

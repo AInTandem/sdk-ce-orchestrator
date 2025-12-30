@@ -10,13 +10,19 @@
  */
 
 import { AInTandemClient } from '@aintandem/sdk-core';
+import type {
+  CreateWorkflowRequest,
+  ExecuteAdhocTaskRequest,
+} from '@aintandem/sdk-core';
 
 // Configuration
 const CONFIG = {
   baseURL: process.env.API_BASE_URL || 'https://api.aintandem.com',
-  username: process.env.API_USERNAME || 'demo-user',
-  password: process.env.API_PASSWORD || 'demo-password',
+  username: process.env.API_USERNAME || 'admin',
+  password: process.env.API_PASSWORD || 'admin123',
   projectId: process.env.PROJECT_ID || 'demo-project',
+  workflowId: process.env.WORKFLOW_ID || '',
+  stepId: process.env.STEP_ID || 'step-1',
 };
 
 // Initialize client
@@ -39,7 +45,7 @@ async function exampleAuthentication() {
 
     console.log('✅ Login successful!');
     console.log('User:', response.user);
-    console.log('Access Token:', response.accessToken.substring(0, 20) + '...');
+    console.log('Access Token:', response.token?.substring(0, 20) + '...');
 
     // Check authentication status
     const isAuthenticated = client.auth.isAuthenticated();
@@ -70,6 +76,7 @@ async function exampleListWorkflows() {
       console.log(`   ID: ${workflow.id}`);
       console.log(`   Description: ${workflow.description}`);
       console.log(`   Status: ${workflow.status}`);
+      console.log(`   Version: ${workflow.version}`);
     });
 
   } catch (error) {
@@ -90,12 +97,15 @@ async function exampleGetWorkflowDetails(workflowId: string) {
     console.log('Name:', workflow.name);
     console.log('Description:', workflow.description);
     console.log('Status:', workflow.status);
+    console.log('Version:', workflow.version);
     console.log('\nPhases:');
     workflow.definition.phases.forEach((phase, index) => {
-      console.log(`\n  ${index + 1}. ${phase.name}`);
+      console.log(`\n  ${index + 1}. ${phase.title || phase.id}`);
+      console.log(`     Description: ${phase.description}`);
+      console.log(`     Color: ${phase.color}`);
       console.log(`     Steps: ${phase.steps.length}`);
       phase.steps.forEach((step, stepIndex) => {
-        console.log(`       ${stepIndex + 1}. ${step.name} (${step.task})`);
+        console.log(`       ${stepIndex + 1}. ${step.title || step.id} (type: ${step.type})`);
       });
     });
 
@@ -105,100 +115,119 @@ async function exampleGetWorkflowDetails(workflowId: string) {
 }
 
 /**
- * Example 4: Execute Task (Async)
+ * Example 4: Create a new workflow
  */
-async function exampleExecuteAsyncTask() {
-  console.log('\n=== Example 4: Execute Async Task ===\n');
+async function exampleCreateWorkflow() {
+  console.log('\n=== Example 4: Create Workflow ===\n');
 
   try {
-    // Submit async task
-    const task = await client.tasks.executeTask({
-      projectId: CONFIG.projectId,
-      task: 'data-analysis',
-      input: {
-        dataset: 'sales-2024',
-        analysisType: 'trend',
+    const request: CreateWorkflowRequest = {
+      name: 'Example Workflow',
+      description: 'A sample workflow created by SDK',
+      definition: {
+        phases: [
+          {
+            id: 'phase-1',
+            title: 'Analysis Phase',
+            titleEn: 'Analysis Phase',
+            description: 'First phase of the workflow',
+            color: '#3B82F6',
+            steps: [
+              {
+                id: 'step-1',
+                title: 'Data Analysis',
+                titleEn: 'Data Analysis',
+                description: 'Analyze the input data',
+                type: 'process',
+                prompt: 'Please analyze the provided data',
+              },
+            ],
+          },
+        ],
+        transitions: [],
       },
-      async: true,
-    });
+    };
 
-    console.log('✅ Task submitted successfully!');
-    console.log('Task ID:', task.id);
-    console.log('Status:', task.status);
+    const workflow = await client.workflows.createWorkflow(request);
 
-    return task.id;
+    console.log('✅ Workflow created successfully!');
+    console.log('ID:', workflow.id);
+    console.log('Name:', workflow.name);
+    console.log('Status:', workflow.status);
+
+    return workflow.id;
 
   } catch (error) {
-    console.error('❌ Failed to execute task:', error);
+    console.error('❌ Failed to create workflow:', error);
     return null;
   }
 }
 
 /**
- * Example 5: Get Task Details
+ * Example 5: Execute an ad-hoc task
  */
-async function exampleGetTaskDetails(taskId: string) {
-  console.log('\n=== Example 5: Get Task Details ===\n');
+async function exampleExecuteAdhocTask() {
+  console.log('\n=== Example 5: Execute Ad-hoc Task ===\n');
 
   try {
-    const task = await client.tasks.getTask(CONFIG.projectId, taskId);
+    const request: ExecuteAdhocTaskRequest = {
+      title: 'Data Analysis Task',
+      description: 'Analyze sales data for trends',
+      prompt: 'Please analyze the sales data for Q4 2024 and identify key trends',
+      taskType: 'claude',
+      parameters: {
+        dataset: 'sales-2024-q4',
+      },
+    };
 
-    console.log('✅ Task Details:');
-    console.log('ID:', task.id);
-    console.log('Task Name:', task.taskName);
-    console.log('Status:', task.status);
-    console.log('Created At:', new Date(task.createdAt).toLocaleString());
+    const task = await client.tasks.executeAdhocTask(request);
 
-    if (task.completedAt) {
-      console.log('Completed At:', new Date(task.completedAt).toLocaleString());
-    }
+    console.log('✅ Ad-hoc task submitted successfully!');
+    console.log('Task ID:', task.taskId);
+    console.log('Message:', task.message);
 
-    if (task.output) {
-      console.log('\nOutput:');
-      console.log(JSON.stringify(task.output, null, 2));
-    }
-
-    if (task.error) {
-      console.log('\nError:', task.error);
-    }
+    return task.taskId;
 
   } catch (error) {
-    console.error('❌ Failed to get task details:', error);
+    console.error('❌ Failed to execute ad-hoc task:', error);
+    return null;
   }
 }
 
 /**
- * Example 6: Task History
+ * Example 6: Get Task Status
  */
-async function exampleTaskHistory() {
-  console.log('\n=== Example 6: Task History ===\n');
+async function exampleGetTaskStatus(taskId: string) {
+  console.log('\n=== Example 6: Get Task Status ===\n');
 
   try {
-    const history = await client.tasks.getTaskHistory(CONFIG.projectId, {
+    const task = await client.tasks.getTaskStatus(CONFIG.projectId, taskId);
+
+    console.log('✅ Task Status:');
+    console.log('Task ID:', task.taskId);
+    console.log('Message:', task.message);
+
+  } catch (error) {
+    console.error('❌ Failed to get task status:', error);
+  }
+}
+
+/**
+ * Example 7: List Task History
+ */
+async function exampleListTaskHistory() {
+  console.log('\n=== Example 7: Task History ===\n');
+
+  try {
+    const history = await client.tasks.listTaskHistory(CONFIG.projectId, {
       limit: 10,
     });
 
     console.log(`✅ Found ${history.length} recent tasks:`);
     history.forEach((task, index) => {
-      console.log(`\n${index + 1}. ${task.taskName}`);
-      console.log(`   ID: ${task.id}`);
-      console.log(`   Status: ${task.status}`);
-      console.log(`   Created: ${new Date(task.createdAt).toLocaleString()}`);
+      console.log(`\n${index + 1}. Task ID: ${task.taskId}`);
+      console.log(`   Message: ${task.message}`);
     });
-
-    // Statistics
-    const stats = {
-      total: history.length,
-      completed: history.filter(t => t.status === 'completed').length,
-      failed: history.filter(t => t.status === 'failed').length,
-      running: history.filter(t => t.status === 'running').length,
-    };
-
-    console.log('\n📊 Statistics:');
-    console.log(`  Total: ${stats.total}`);
-    console.log(`  Completed: ${stats.completed}`);
-    console.log(`  Failed: ${stats.failed}`);
-    console.log(`  Running: ${stats.running}`);
 
   } catch (error) {
     console.error('❌ Failed to get task history:', error);
@@ -206,67 +235,134 @@ async function exampleTaskHistory() {
 }
 
 /**
- * Example 7: Queue Status
+ * Example 8: List organizations
  */
-async function exampleQueueStatus() {
-  console.log('\n=== Example 7: Queue Status ===\n');
+async function exampleListOrganizations() {
+  console.log('\n=== Example 8: List Organizations ===\n');
 
   try {
-    const queue = await client.tasks.getQueueStatus(CONFIG.projectId);
+    const organizations = await client.workspaces.listOrganizations();
 
-    console.log('✅ Queue Status:');
-    console.log('Pending:', queue.pending);
-    console.log('Running:', queue.running);
-    console.log('Completed:', queue.completed);
-    console.log('Failed:', queue.failed);
+    console.log(`✅ Found ${organizations.length} organizations:`);
+    organizations.forEach((org, index) => {
+      console.log(`\n${index + 1}. ${org.name}`);
+      console.log(`   ID: ${org.id}`);
+      console.log(`   Folder Path: ${org.folderPath || 'N/A'}`);
+      console.log(`   Created: ${new Date(org.createdAt).toLocaleString()}`);
+    });
 
   } catch (error) {
-    console.error('❌ Failed to get queue status:', error);
+    console.error('❌ Failed to list organizations:', error);
   }
 }
 
 /**
- * Example 8: Real-time Progress Tracking
+ * Example 9: List Workspaces
  */
-async function exampleProgressTracking(taskId: string) {
-  console.log('\n=== Example 8: Real-time Progress Tracking ===\n');
+async function exampleListWorkspaces() {
+  console.log('\n=== Example 9: List Workspaces ===\n');
 
   try {
-    let eventCount = 0;
+    // First get an organization
+    const organizations = await client.workspaces.listOrganizations();
+    if (organizations.length === 0) {
+      console.log('No organizations found');
+      return;
+    }
 
-    await client.subscribeToTask(
-      CONFIG.projectId,
-      taskId,
-      // Progress event callback
-      (event) => {
-        eventCount++;
-        console.log(`📡 [Event ${eventCount}] ${event.type}`);
+    const orgId = organizations[0]?.id;
+    if (!orgId) {
+      console.log('Invalid organization ID');
+      return;
+    }
+    const workspaces = await client.workspaces.listWorkspaces(orgId);
 
-        if (event.type === 'task_progress') {
-          console.log(`   Progress: ${event.data.percent}%`);
-          console.log(`   Step: ${event.data.currentStep}`);
-        }
-      },
-      // Complete callback
-      (event) => {
-        console.log('✅ Task completed!');
-        console.log('Duration:', event.data.duration, 'ms');
-        console.log('Output:', JSON.stringify(event.output, null, 2));
-      },
-      // Error callback
-      (event) => {
-        console.error('❌ Task failed!');
-        console.error('Error:', event.data.error);
-      }
-    );
-
-    console.log('✅ Subscribed to task progress');
-    console.log('Waiting for events...\n');
+    const firstOrg = organizations[0];
+    console.log(`✅ Found ${workspaces.length} workspaces in ${firstOrg?.name || 'unknown'}:`);
+    workspaces.forEach((workspace, index) => {
+      console.log(`\n${index + 1}. ${workspace.name}`);
+      console.log(`   ID: ${workspace.id}`);
+      console.log(`   Folder Path: ${workspace.folderPath || 'N/A'}`);
+      console.log(`   Created: ${new Date(workspace.createdAt).toLocaleString()}`);
+    });
 
   } catch (error) {
-    console.error('❌ Failed to subscribe to progress:', error);
+    console.error('❌ Failed to list workspaces:', error);
   }
 }
+
+/**
+ * Example 10: List Projects
+ */
+async function exampleListProjects() {
+  console.log('\n=== Example 10: List Projects ===\n');
+
+  try {
+    // First get an organization and workspace
+    const organizations = await client.workspaces.listOrganizations();
+    if (organizations.length === 0) {
+      console.log('No organizations found');
+      return;
+    }
+
+    const orgId = organizations[0]?.id;
+    if (!orgId) {
+      console.log('Invalid organization ID');
+      return;
+    }
+    const workspaces = await client.workspaces.listWorkspaces(orgId);
+    if (workspaces.length === 0) {
+      console.log('No workspaces found');
+      return;
+    }
+
+    const workspaceId = workspaces[0]?.id;
+    if (!workspaceId) {
+      console.log('Invalid workspace ID');
+      return;
+    }
+    const projects = await client.workspaces.listProjects(workspaceId);
+
+    const firstWorkspace = workspaces[0];
+    console.log(`✅ Found ${projects.length} projects in ${firstWorkspace?.name || 'unknown'}:`);
+    projects.forEach((project, index) => {
+      console.log(`\n${index + 1}. ${project.name}`);
+      console.log(`   ID: ${project.id}`);
+      console.log(`   Folder Path: ${project.folderPath || 'N/A'}`);
+      console.log(`   Created: ${new Date(project.createdAt).toLocaleString()}`);
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to list projects:', error);
+  }
+}
+
+/**
+ * Example 11: List Sandboxes
+ * NOTE: This example has been removed as ContainerService is no longer available
+ */
+/*
+async function exampleListSandboxes() {
+  console.log('\n=== Example 11: List Sandboxes ===\n');
+
+  try {
+    // Note: listContainers requires a projectId
+    const sandboxes = await client.containers.listContainers(CONFIG.projectId);
+
+    console.log(`✅ Found ${sandboxes.length} sandboxes:`);
+    sandboxes.forEach((sandbox, index) => {
+      console.log(`\n${index + 1}. ${sandbox.name}`);
+      console.log(`   Sandbox ID: ${sandbox.sandboxId}`);
+      console.log(`   Status: ${sandbox.status}`);
+      console.log(`   Image: ${sandbox.image}`);
+      console.log(`   IP: ${sandbox.ip || 'N/A'}`);
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to list sandboxes:', error);
+  }
+}
+*/
 
 /**
  * Main execution function
@@ -280,35 +376,39 @@ async function main() {
     // 1. Authentication
     await exampleAuthentication();
 
-    // 2. List workflows
+    // 2. List organizations, workspaces, projects
+    await exampleListOrganizations();
+    await exampleListWorkspaces();
+    await exampleListProjects();
+    // await exampleListSandboxes(); // ContainerService removed
+
+    // 3. List workflows
     await exampleListWorkflows();
 
-    // 3. Get workflow details (using first workflow ID)
+    // 4. Get workflow details
     const workflows = await client.workflows.listWorkflows('published');
     if (workflows.length > 0) {
-      await exampleGetWorkflowDetails(workflows[0].id);
+      const firstWorkflow = workflows[0];
+      if (firstWorkflow) {
+        await exampleGetWorkflowDetails(firstWorkflow.id);
+      }
     }
 
-    // 4. Execute async task
-    const taskId = await exampleExecuteAsyncTask();
+    // 5. Create a new workflow
+    await exampleCreateWorkflow();
+
+    // 6. Execute ad-hoc task
+    const taskId = await exampleExecuteAdhocTask();
 
     if (taskId) {
-      // 5. Wait a bit for task to start
+      // 7. Wait a bit for task to start
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // 6. Get task details
-      await exampleGetTaskDetails(taskId);
+      // 8. Get task status
+      await exampleGetTaskStatus(taskId);
 
-      // 7. Task history
-      await exampleTaskHistory();
-
-      // 8. Queue status
-      await exampleQueueStatus();
-
-      // 9. Progress tracking (will wait for completion)
-      // await exampleProgressTracking(taskId);
-      // Note: Uncomment the above line to track progress in real-time
-      // This will block until the task completes
+      // 9. Task history
+      await exampleListTaskHistory();
     }
 
     console.log('\n✅ All examples completed successfully!');

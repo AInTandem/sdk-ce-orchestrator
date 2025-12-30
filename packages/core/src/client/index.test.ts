@@ -27,7 +27,7 @@ describe('AInTandemClient', () => {
       expect(client.auth).toBeDefined();
       expect(client.workflows).toBeDefined();
       expect(client.tasks).toBeDefined();
-      expect(client.containers).toBeDefined();
+      expect(client.sandboxes).toBeDefined();
       expect(client.settings).toBeDefined();
     });
 
@@ -264,56 +264,55 @@ describe('AInTandemClient', () => {
     });
   });
 
-  describe('Containers Service', () => {
-    it('should list containers', async () => {
-      const containers = await client.containers.listContainers('proj-1');
+  describe('Sandboxes Service', () => {
+    it('should list sandboxes', async () => {
+      const sandboxes = await client.sandboxes.listSandboxes();
 
-      expect(containers).toBeDefined();
-      expect(Array.isArray(containers)).toBe(true);
-      expect(containers.length).toBeGreaterThan(0);
+      expect(sandboxes).toBeDefined();
+      expect(Array.isArray(sandboxes)).toBe(true);
+      expect(sandboxes.length).toBeGreaterThan(0);
     });
 
-    it('should get container by ID', async () => {
-      const container = await client.containers.getContainer('proj-1', 'cont-1');
+    it('should get sandbox by ID', async () => {
+      const sandbox = await client.sandboxes.getSandbox('sandbox-1');
 
-      expect(container).toBeDefined();
-      expect(container.id).toBe('cont-1');
+      expect(sandbox).toBeDefined();
+      expect(sandbox.sandboxId).toBe('sandbox-1');
     });
 
-    it('should create container', async () => {
-      const container = await client.containers.createContainer('proj-1', {
-        name: 'new-container',
+    it('should create sandbox', async () => {
+      const sandbox = await client.sandboxes.createSandbox({
+        projectId: 'proj-1',
+        name: 'new-sandbox',
         image: 'ainkai/flexy:latest',
-        ports: [],
       });
 
-      expect(container).toBeDefined();
-      expect(container.name).toBe('new-container');
+      expect(sandbox).toBeDefined();
+      expect(sandbox.name).toBe('new-sandbox');
     });
 
-    it('should start container', async () => {
+    it('should start sandbox', async () => {
       await expect(
-        client.containers.startContainer('proj-1', 'cont-1')
+        client.sandboxes.startSandbox('sandbox-1')
       ).resolves.not.toThrow();
     });
 
-    it('should stop container', async () => {
+    it('should stop sandbox', async () => {
       await expect(
-        client.containers.stopContainer('proj-1', 'cont-1')
+        client.sandboxes.stopSandbox('sandbox-1')
       ).resolves.not.toThrow();
     });
 
-    it('should remove container', async () => {
+    it('should restart sandbox', async () => {
       await expect(
-        client.containers.removeContainer('proj-1', 'cont-1')
+        client.sandboxes.restartSandbox('sandbox-1')
       ).resolves.not.toThrow();
     });
 
-    it('should get container logs', async () => {
-      const logs = await client.containers.getContainerLogs('proj-1', 'cont-1');
-
-      expect(logs).toBeDefined();
-      expect(logs.logs).toBeDefined();
+    it('should delete sandbox', async () => {
+      await expect(
+        client.sandboxes.deleteSandbox('sandbox-1')
+      ).resolves.not.toThrow();
     });
   });
 

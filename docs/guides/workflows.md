@@ -1,14 +1,14 @@
-# 工作流管理指南
+# Workflow Management Guide
 
-本指南詳細說明如何使用 AInTandem SDK 管理工作流（Workflows），包括創建、查詢、更新、刪除和執行工作流。
+This guide explains how to use the AInTandem SDK to manage workflows (Workflows), including creating, querying, updating, deleting, and executing workflows.
 
-## 概述
+## Overview
 
-工作流是 AInTandem 的核心功能，用於定義和執行複雜的自動化任務序列。每個工作流包含多個階段（Phases），每個階段包含多個步驟（Steps）。
+Workflows are the core functionality of AInTandem, used to define and execute complex automated task sequences. Each workflow contains multiple phases (Phases), and each phase contains multiple steps (Steps).
 
-## 核心 SDK 使用
+## Core SDK Usage
 
-### 1. 獲取工作流列表
+### 1. Get Workflow List
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -17,40 +17,40 @@ const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
 
-// 獲取所有已發布的工作流
+// Get all published workflows
 const publishedWorkflows = await client.workflows.listWorkflows('published');
-console.log('已發布的工作流:', publishedWorkflows);
+console.log('Published workflows:', publishedWorkflows);
 
-// 獲取所有草稿工作流
+// Get all draft workflows
 const draftWorkflows = await client.workflows.listWorkflows('draft');
-console.log('草稿工作流:', draftWorkflows);
+console.log('Draft workflows:', draftWorkflows);
 
-// 獲取所有工作流
+// Get all workflows
 const allWorkflows = await client.workflows.listWorkflows();
-console.log('所有工作流:', allWorkflows);
+console.log('All workflows:', allWorkflows);
 ```
 
-### 2. 獲取單個工作流
+### 2. Get Single Workflow
 
 ```typescript
-// 根據 ID 獲取工作流詳情
+// Get workflow details by ID
 const workflow = await client.workflows.getWorkflow('workflow-id');
 
-console.log('工作流 ID:', workflow.id);
-console.log('工作流名稱:', workflow.name);
-console.log('工作流描述:', workflow.description);
-console.log('工作流狀態:', workflow.status);
-console.log('工作流定義:', workflow.definition);
+console.log('Workflow ID:', workflow.id);
+console.log('Workflow name:', workflow.name);
+console.log('Workflow description:', workflow.description);
+console.log('Workflow status:', workflow.status);
+console.log('Workflow definition:', workflow.definition);
 ```
 
-### 3. 創建工作流
+### 3. Create Workflow
 
 ```typescript
-// 創建新工作流
+// Create new workflow
 const newWorkflow = await client.workflows.createWorkflow({
   name: 'Data Processing Pipeline',
   description: 'Process sales data and generate reports',
-  status: 'draft', // 'draft' 或 'published'
+  status: 'draft', // 'draft' or 'published'
   definition: {
     phases: [
       {
@@ -86,60 +86,60 @@ const newWorkflow = await client.workflows.createWorkflow({
   },
 });
 
-console.log('已創建工作流:', newWorkflow.id);
+console.log('Workflow created:', newWorkflow.id);
 ```
 
-### 4. 更新工作流
+### 4. Update Workflow
 
 ```typescript
-// 更新工作流基本信息
+// Update workflow basic information
 const updated = await client.workflows.updateWorkflow('workflow-id', {
   name: 'Updated Workflow Name',
   description: 'Updated description',
 });
 
-console.log('已更新:', updated.id);
+console.log('Updated:', updated.id);
 ```
 
-### 5. 更改工作流狀態
+### 5. Change Workflow Status
 
 ```typescript
-// 發布工作流
+// Publish workflow
 const published = await client.workflows.changeWorkflowStatus('workflow-id', 'published');
-console.log('工作流已發布:', published.status);
+console.log('Workflow published:', published.status);
 
-// 取消發布（改為草稿）
+// Unpublish (change to draft)
 const draft = await client.workflows.changeWorkflowStatus('workflow-id', 'draft');
-console.log('工作流改為草稿:', draft.status);
+console.log('Workflow changed to draft:', draft.status);
 ```
 
-### 6. 複製工作流
+### 6. Clone Workflow
 
 ```typescript
-// 複製現有工作流
+// Clone existing workflow
 const cloned = await client.workflows.cloneWorkflow('workflow-id', {
   name: 'Copy of Data Processing Pipeline',
   description: 'Cloned workflow',
 });
 
-console.log('已複製工作流:', cloned.id);
-console.log('新工作流名稱:', cloned.name);
+console.log('Workflow cloned:', cloned.id);
+console.log('New workflow name:', cloned.name);
 ```
 
-### 7. 刪除工作流
+### 7. Delete Workflow
 
 ```typescript
-// 刪除工作流
+// Delete workflow
 await client.workflows.deleteWorkflow('workflow-id');
-console.log('工作流已刪除');
+console.log('Workflow deleted');
 ```
 
-## 工作流執行
+## Workflow Execution
 
-### 1. 創建工作流執行
+### 1. Create Workflow Execution
 
 ```typescript
-// 創建工作流執行實例
+// Create workflow execution instance
 const execution = await client.workflows.createWorkflowExecution('workflow-id', {
   projectId: 'project-123',
   input: {
@@ -149,31 +149,31 @@ const execution = await client.workflows.createWorkflowExecution('workflow-id', 
   },
 });
 
-console.log('執行 ID:', execution.id);
-console.log('執行狀態:', execution.status);
+console.log('Execution ID:', execution.id);
+console.log('Execution status:', execution.status);
 ```
 
-### 2. 獲取工作流執行詳情
+### 2. Get Workflow Execution Details
 
 ```typescript
-// 獲取執行詳情
+// Get execution details
 const execution = await client.workflows.getWorkflowExecution('execution-id');
 
-console.log('執行狀態:', execution.status);
-console.log('當前階段:', execution.currentPhase);
-console.log('已完成步驟:', execution.completedSteps);
-console.log('總步驟數:', execution.totalSteps);
+console.log('Execution status:', execution.status);
+console.log('Current phase:', execution.currentPhase);
+console.log('Completed steps:', execution.completedSteps);
+console.log('Total steps:', execution.totalSteps);
 ```
 
-### 3. 獲取工作流的執行列表
+### 3. Get Workflow's Execution List
 
 ```typescript
-// 獲取特定工作流的所有執行記錄
+// Get all execution records for specific workflow
 const executions = await client.workflows.listWorkflowExecutions('workflow-id');
 
-console.log('執行歷史:', executions);
+console.log('Execution history:', executions);
 
-// 執行統計
+// Execution statistics
 const stats = {
   total: executions.length,
   running: executions.filter(e => e.status === 'running').length,
@@ -181,61 +181,61 @@ const stats = {
   failed: executions.filter(e => e.status === 'failed').length,
 };
 
-console.log('執行統計:', stats);
+console.log('Execution statistics:', stats);
 ```
 
-### 4. 控制工作流執行
+### 4. Control Workflow Execution
 
 ```typescript
 const executionId = 'execution-id';
 
-// 開始執行
+// Start execution
 const started = await client.workflows.startWorkflowExecution(executionId);
-console.log('已開始:', started.status);
+console.log('Started:', started.status);
 
-// 暫停執行
+// Pause execution
 const paused = await client.workflows.pauseWorkflowExecution(executionId);
-console.log('已暫停:', paused.status);
+console.log('Paused:', paused.status);
 
-// 恢復執行
+// Resume execution
 const resumed = await client.workflows.resumeWorkflowExecution(executionId);
-console.log('已恢復:', resumed.status);
+console.log('Resumed:', resumed.status);
 
-// 取消執行
+// Cancel execution
 const cancelled = await client.workflows.cancelWorkflowExecution(executionId);
-console.log('已取消:', cancelled.status);
+console.log('Cancelled:', cancelled.status);
 ```
 
-## 工作流版本管理
+## Workflow Version Management
 
-### 1. 獲取工作流版本列表
+### 1. Get Workflow Version List
 
 ```typescript
-// 獲取工作流的所有版本
+// Get all versions of workflow
 const versions = await client.workflows.listWorkflowVersions('workflow-id');
 
-console.log('版本列表:', versions);
+console.log('Version list:', versions);
 
-// 顯示版本信息
+// Display version information
 versions.forEach(version => {
-  console.log(`版本 ${version.version}: ${version.comment}`);
-  console.log(`  創建時間: ${version.createdAt}`);
-  console.log(`  創建者: ${version.createdBy}`);
+  console.log(`Version ${version.version}: ${version.comment}`);
+  console.log(`  Created at: ${version.createdAt}`);
+  console.log(`  Created by: ${version.createdBy}`);
 });
 ```
 
-### 2. 獲取特定版本詳情
+### 2. Get Specific Version Details
 
 ```typescript
-// 獲取特定版本的詳情
+// Get specific version details
 const version = await client.workflows.getWorkflowVersion('workflow-id', 2);
 
-console.log('版本 2 的定義:', version.definition);
+console.log('Version 2 definition:', version.definition);
 ```
 
-## React Hooks 使用
+## React Hooks Usage
 
-### 1. 使用 useWorkflow Hook（單個工作流）
+### 1. Using useWorkflow Hook (Single Workflow)
 
 ```tsx
 import { useWorkflow } from '@aintandem/sdk-react';
@@ -243,16 +243,16 @@ import { useWorkflow } from '@aintandem/sdk-react';
 function WorkflowDetail({ workflowId }: { workflowId: string }) {
   const { workflow, loading, error, update, changeStatus, clone } = useWorkflow(workflowId);
 
-  if (loading) return <div>載入中...</div>;
-  if (error) return <div>錯誤: {error.message}</div>;
-  if (!workflow) return <div>工作流不存在</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!workflow) return <div>Workflow not found</div>;
 
   const handlePublish = async () => {
     try {
       await changeStatus('published');
-      alert('工作流已發布');
+      alert('Workflow published');
     } catch (err) {
-      alert('發布失敗');
+      alert('Publish failed');
     }
   };
 
@@ -261,9 +261,9 @@ function WorkflowDetail({ workflowId }: { workflowId: string }) {
       const cloned = await clone({
         name: `${workflow.name} (Copy)`,
       });
-      alert(`已複製: ${cloned.id}`);
+      alert(`Cloned: ${cloned.id}`);
     } catch (err) {
-      alert('複製失敗');
+      alert('Clone failed');
     }
   };
 
@@ -271,13 +271,13 @@ function WorkflowDetail({ workflowId }: { workflowId: string }) {
     <div>
       <h1>{workflow.name}</h1>
       <p>{workflow.description}</p>
-      <p>狀態: {workflow.status}</p>
+      <p>Status: {workflow.status}</p>
 
-      <button onClick={handlePublish}>發布</button>
-      <button onClick={handleClone}>複製</button>
+      <button onClick={handlePublish}>Publish</button>
+      <button onClick={handleClone}>Clone</button>
 
       <div>
-        <h2>階段</h2>
+        <h2>Phases</h2>
         {workflow.definition.phases.map(phase => (
           <div key={phase.id}>
             <h3>{phase.name}</h3>
@@ -294,7 +294,7 @@ function WorkflowDetail({ workflowId }: { workflowId: string }) {
 }
 ```
 
-### 2. 使用 useWorkflows Hook（工作流列表）
+### 2. Using useWorkflows Hook (Workflow List)
 
 ```tsx
 import { useWorkflows } from '@aintandem/sdk-react';
@@ -302,8 +302,8 @@ import { useWorkflows } from '@aintandem/sdk-react';
 function WorkflowList() {
   const { workflows, loading, error, refresh, create, remove } = useWorkflows('published');
 
-  if (loading) return <div>載入中...</div>;
-  if (error) return <div>錯誤: {error.message}</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   const handleCreate = async () => {
     try {
@@ -313,19 +313,19 @@ function WorkflowList() {
         status: 'draft',
         definition: { phases: [] },
       });
-      refresh(); // 刷新列表
+      refresh(); // Refresh list
     } catch (err) {
-      alert('創建失敗');
+      alert('Create failed');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('確定要刪除這個工作流嗎？')) {
+    if (confirm('Are you sure you want to delete this workflow?')) {
       try {
         await remove(id);
-        refresh(); // 刷新列表
+        refresh(); // Refresh list
       } catch (err) {
-        alert('刪除失敗');
+        alert('Delete failed');
       }
     }
   };
@@ -333,8 +333,8 @@ function WorkflowList() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h1>已發布的工作流</h1>
-        <button onClick={handleCreate}>創建工作流</button>
+        <h1>Published Workflows</h1>
+        <button onClick={handleCreate}>Create Workflow</button>
       </div>
 
       <ul>
@@ -342,8 +342,8 @@ function WorkflowList() {
           <li key={workflow.id}>
             <h3>{workflow.name}</h3>
             <p>{workflow.description}</p>
-            <p>狀態: {workflow.status}</p>
-            <button onClick={() => handleDelete(workflow.id)}>刪除</button>
+            <p>Status: {workflow.status}</p>
+            <button onClick={() => handleDelete(workflow.id)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -352,7 +352,7 @@ function WorkflowList() {
 }
 ```
 
-### 3. 使用 useWorkflowVersions Hook
+### 3. Using useWorkflowVersions Hook
 
 ```tsx
 import { useWorkflowVersions } from '@aintandem/sdk-react';
@@ -360,19 +360,19 @@ import { useWorkflowVersions } from '@aintandem/sdk-react';
 function WorkflowVersionHistory({ workflowId }: { workflowId: string }) {
   const { versions, loading, error } = useWorkflowVersions(workflowId);
 
-  if (loading) return <div>載入中...</div>;
-  if (error) return <div>錯誤: {error.message}</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
-      <h2>版本歷史</h2>
+      <h2>Version History</h2>
       <table>
         <thead>
           <tr>
-            <th>版本</th>
-            <th>評論</th>
-            <th>創建者</th>
-            <th>創建時間</th>
+            <th>Version</th>
+            <th>Comment</th>
+            <th>Created By</th>
+            <th>Created At</th>
           </tr>
         </thead>
         <tbody>
@@ -391,7 +391,7 @@ function WorkflowVersionHistory({ workflowId }: { workflowId: string }) {
 }
 ```
 
-### 4. 使用 useWorkflowExecution Hook（單個執行）
+### 4. Using useWorkflowExecution Hook (Single Execution)
 
 ```tsx
 import { useWorkflowExecution } from '@aintandem/sdk-react';
@@ -399,16 +399,16 @@ import { useWorkflowExecution } from '@aintandem/sdk-react';
 function WorkflowExecutionMonitor({ executionId }: { executionId: string }) {
   const { execution, loading, error, refresh, start, pause, resume, cancel } = useWorkflowExecution(executionId);
 
-  if (loading) return <div>載入中...</div>;
-  if (error) return <div>錯誤: {error.message}</div>;
-  if (!execution) return <div>執行不存在</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!execution) return <div>Execution not found</div>;
 
   const handleStart = async () => {
     try {
       await start();
       refresh();
     } catch (err) {
-      alert('啟動失敗');
+      alert('Start failed');
     }
   };
 
@@ -417,7 +417,7 @@ function WorkflowExecutionMonitor({ executionId }: { executionId: string }) {
       await pause();
       refresh();
     } catch (err) {
-      alert('暫停失敗');
+      alert('Pause failed');
     }
   };
 
@@ -426,17 +426,17 @@ function WorkflowExecutionMonitor({ executionId }: { executionId: string }) {
       await resume();
       refresh();
     } catch (err) {
-      alert('恢復失敗');
+      alert('Resume failed');
     }
   };
 
   const handleCancel = async () => {
-    if (confirm('確定要取消此執行嗎？')) {
+    if (confirm('Are you sure you want to cancel this execution?')) {
       try {
         await cancel();
         refresh();
       } catch (err) {
-        alert('取消失敗');
+        alert('Cancel failed');
       }
     }
   };
@@ -447,17 +447,17 @@ function WorkflowExecutionMonitor({ executionId }: { executionId: string }) {
 
   return (
     <div>
-      <h2>執行詳情</h2>
-      <p>狀態: {execution.status}</p>
-      <p>當前階段: {execution.currentPhase || 'N/A'}</p>
-      <p>進度: {execution.completedSteps} / {execution.totalSteps} ({progress.toFixed(1)}%)</p>
+      <h2>Execution Details</h2>
+      <p>Status: {execution.status}</p>
+      <p>Current phase: {execution.currentPhase || 'N/A'}</p>
+      <p>Progress: {execution.completedSteps} / {execution.totalSteps} ({progress.toFixed(1)}%)</p>
 
       <div>
-        {execution.status === 'pending' && <button onClick={handleStart}>開始</button>}
-        {execution.status === 'running' && <button onClick={handlePause}>暫停</button>}
-        {execution.status === 'paused' && <button onClick={handleResume}>恢復</button>}
+        {execution.status === 'pending' && <button onClick={handleStart}>Start</button>}
+        {execution.status === 'running' && <button onClick={handlePause}>Pause</button>}
+        {execution.status === 'paused' && <button onClick={handleResume}>Resume</button>}
         {(execution.status === 'running' || execution.status === 'paused') && (
-          <button onClick={handleCancel}>取消</button>
+          <button onClick={handleCancel}>Cancel</button>
         )}
       </div>
 
@@ -467,7 +467,7 @@ function WorkflowExecutionMonitor({ executionId }: { executionId: string }) {
 }
 ```
 
-### 5. 使用 useWorkflowExecutions Hook（執行列表）
+### 5. Using useWorkflowExecutions Hook (Execution List)
 
 ```tsx
 import { useWorkflowExecutions } from '@aintandem/sdk-react';
@@ -475,8 +475,8 @@ import { useWorkflowExecutions } from '@aintandem/sdk-react';
 function WorkflowExecutionList({ workflowId }: { workflowId: string }) {
   const { executions, loading, error, refresh, create } = useWorkflowExecutions(workflowId);
 
-  if (loading) return <div>載入中...</div>;
-  if (error) return <div>錯誤: {error.message}</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   const handleCreateExecution = async () => {
     try {
@@ -486,25 +486,25 @@ function WorkflowExecutionList({ workflowId }: { workflowId: string }) {
       });
       refresh();
     } catch (err) {
-      alert('創建執行失敗');
+      alert('Create execution failed');
     }
   };
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h2>執行歷史</h2>
-        <button onClick={handleCreateExecution}>創建執行</button>
+        <h2>Execution History</h2>
+        <button onClick={handleCreateExecution}>Create Execution</button>
       </div>
 
       <table>
         <thead>
           <tr>
             <th>ID</th>
-            <th>狀態</th>
-            <th>當前階段</th>
-            <th>進度</th>
-            <th>創建時間</th>
+            <th>Status</th>
+            <th>Current Phase</th>
+            <th>Progress</th>
+            <th>Created At</th>
           </tr>
         </thead>
         <tbody>
@@ -526,9 +526,9 @@ function WorkflowExecutionList({ workflowId }: { workflowId: string }) {
 }
 ```
 
-## 完整範例
+## Complete Examples
 
-### 核心 SDK 工作流管理
+### Core SDK Workflow Management
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -542,59 +542,59 @@ class WorkflowManager {
     });
   }
 
-  // 創建並發布工作流
+  // Create and publish workflow
   async createAndPublishWorkflow(definition: any) {
-    // 1. 創建草稿
+    // 1. Create draft
     const workflow = await this.client.workflows.createWorkflow({
       ...definition,
       status: 'draft',
     });
 
-    console.log('已創建草稿:', workflow.id);
+    console.log('Draft created:', workflow.id);
 
-    // 2. 發布工作流
+    // 2. Publish workflow
     const published = await this.client.workflows.changeWorkflowStatus(
       workflow.id,
       'published'
     );
 
-    console.log('已發布:', published.id);
+    console.log('Published:', published.id);
     return published;
   }
 
-  // 執行工作流並監控
+  // Execute workflow and monitor
   async executeWorkflow(workflowId: string, projectId: string, input: any) {
-    // 1. 創建執行
+    // 1. Create execution
     const execution = await this.client.workflows.createWorkflowExecution(workflowId, {
       projectId,
       input,
     });
 
-    console.log('執行 ID:', execution.id);
+    console.log('Execution ID:', execution.id);
 
-    // 2. 開始執行
+    // 2. Start execution
     await this.client.workflows.startWorkflowExecution(execution.id);
 
-    // 3. 訂閱進度
+    // 3. Subscribe to progress
     await this.client.subscribeToWorkflow(
       projectId,
       workflowId,
       execution.id,
       (event) => {
-        console.log('工作流事件:', event);
+        console.log('Workflow event:', event);
       },
       (event) => {
-        console.log('工作流完成:', event);
+        console.log('Workflow completed:', event);
       },
       (event) => {
-        console.error('工作流失敗:', event);
+        console.error('Workflow failed:', event);
       }
     );
 
     return execution;
   }
 
-  // 獲取工作流統計
+  // Get workflow statistics
   async getWorkflowStats(workflowId: string) {
     const executions = await this.client.workflows.listWorkflowExecutions(workflowId);
 
@@ -609,28 +609,28 @@ class WorkflowManager {
   }
 }
 
-// 使用
+// Usage
 const manager = new WorkflowManager();
 
-// 創建工作流
+// Create workflow
 const workflow = await manager.createAndPublishWorkflow({
   name: 'Sales Report',
   definition: { phases: [] },
 });
 
-// 執行工作流
+// Execute workflow
 const execution = await manager.executeWorkflow(
   workflow.id,
   'project-123',
   { dataset: 'sales-2024' }
 );
 
-// 獲取統計
+// Get statistics
 const stats = await manager.getWorkflowStats(workflow.id);
-console.log('統計:', stats);
+console.log('Statistics:', stats);
 ```
 
-### React 工作流管理介面
+### React Workflow Management Interface
 
 ```tsx
 import { AInTandemProvider } from '@aintandem/sdk-react';
@@ -648,11 +648,11 @@ function App() {
 function WorkflowDashboard() {
   const { workflows, loading: workflowsLoading } = useWorkflows('published');
 
-  if (workflowsLoading) return <div>載入中...</div>;
+  if (workflowsLoading) return <div>Loading...</div>;
 
   return (
     <div>
-      <h1>工作流儀表板</h1>
+      <h1>Workflow Dashboard</h1>
       {workflows.map(workflow => (
         <WorkflowCard key={workflow.id} workflow={workflow} />
       ))}
@@ -663,7 +663,7 @@ function WorkflowDashboard() {
 function WorkflowCard({ workflow }: { workflow: any }) {
   const { executions, loading: executionsLoading } = useWorkflowExecutions(workflow.id);
 
-  if (executionsLoading) return <div>載入執行中...</div>;
+  if (executionsLoading) return <div>Loading executions...</div>;
 
   const recentExecutions = executions.slice(0, 5);
   const successRate = executions.length > 0
@@ -676,11 +676,11 @@ function WorkflowCard({ workflow }: { workflow: any }) {
       <p>{workflow.description}</p>
 
       <div className="stats">
-        <p>總執行次數: {executions.length}</p>
-        <p>成功率: {successRate.toFixed(1)}%</p>
+        <p>Total executions: {executions.length}</p>
+        <p>Success rate: {successRate.toFixed(1)}%</p>
       </div>
 
-      <h3>最近執行</h3>
+      <h3>Recent Executions</h3>
       <ul>
         {recentExecutions.map(execution => (
           <li key={execution.id}>
@@ -699,7 +699,7 @@ function ExecutionItem({ execution }: { execution: any }) {
 
   return (
     <div>
-      <span>狀態: {execution.status}</span>
+      <span>Status: {execution.status}</span>
       <ProgressBar value={progress} size="small" />
       <span>{progress.toFixed(0)}%</span>
     </div>
@@ -707,25 +707,25 @@ function ExecutionItem({ execution }: { execution: any }) {
 }
 ```
 
-## 下一步
+## Next Steps
 
-- [任務執行](./tasks.md) - 了解如何執行單個任務
-- [實時進度追蹤](./real-time-progress.md) - 了解如何追蹤工作流執行進度
+- [Task Execution](./tasks.md) - Learn how to execute single tasks
+- [Real-time Progress Tracking](./real-time-progress.md) - Learn how to track workflow execution progress
 
-## 常見問題
+## FAQ
 
-### Q: 工作流和任務的區別是什麼？
+### Q: What's the difference between workflows and tasks?
 
-工作流是複雜的多步驟流程，包含多個階段和步驟。任務是單個操作單元。工作流的每個步驟都對應一個任務。
+Workflows are complex multi-step processes containing multiple phases and steps. Tasks are single operation units. Each step in a workflow corresponds to a task.
 
-### Q: 如何在執行工作流時傳遞參數？
+### Q: How to pass parameters when executing workflow?
 
-在創建工作流執行時使用 `input` 參數傳遞。這些參數會被傳遞給工作流中的每個步驟。
+Use the `input` parameter when creating workflow execution. These parameters will be passed to each step in the workflow.
 
-### Q: 工作流執行失敗後如何重試？
+### Q: How to retry failed workflow execution?
 
-您可以創建新的執行實例來重試失敗的工作流。
+You can create a new execution instance to retry failed workflows.
 
 ---
 
-**祝您使用愉快！** ⚙️
+**Happy coding!** ⚙️

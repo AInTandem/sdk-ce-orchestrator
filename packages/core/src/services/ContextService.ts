@@ -119,12 +119,10 @@ export class ContextService {
   async searchMemories(request: SearchMemoriesRequest): Promise<MemorySearchResult> {
     const params = new URLSearchParams();
     if (request.query) params.append('query', request.query);
-    if (request.limit) params.append('limit', request.limit.toString());
-    if (request.filters) {
-      Object.entries(request.filters).forEach(([key, value]) => {
-        params.append(`filter[${key}]`, String(value));
-      });
-    }
+    if (request.scope) params.append('scope', request.scope);
+    if (request.scope_id) params.append('scope_id', request.scope_id);
+    if (request.limit !== undefined) params.append('limit', request.limit.toString());
+    if (request.include_inherited !== undefined) params.append('include_inherited', String(request.include_inherited));
 
     const queryString = params.toString();
     return this.httpClient.get<MemorySearchResult>(
@@ -168,8 +166,13 @@ export class ContextService {
     request: GetRelevantContextRequest
   ): Promise<GetRelevantContextResponse> {
     const params = new URLSearchParams();
-    params.append('query', request.query);
-    if (request.limit) params.append('limit', request.limit.toString());
+    params.append('prompt', request.prompt);
+    if (request.maxMemories !== undefined) params.append('maxMemories', request.maxMemories.toString());
+    if (request.types) {
+      request.types.forEach(type => params.append('types', type));
+    }
+    if (request.includeWorkspace !== undefined) params.append('includeWorkspace', String(request.includeWorkspace));
+    if (request.includeOrg !== undefined) params.append('includeOrg', String(request.includeOrg));
 
     const queryString = params.toString();
     return this.httpClient.get<GetRelevantContextResponse>(

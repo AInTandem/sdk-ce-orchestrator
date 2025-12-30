@@ -91,8 +91,9 @@ export class AuthManager {
         credentials
       );
 
-      this.token = response.token;
-      this.refreshToken = response.refreshToken || null;
+      this.token = response.token ?? null;
+      // Note: LoginResponse doesn't include refreshToken in current API
+      this.refreshToken = null;
 
       // Store tokens
       if (this.token) {
@@ -100,7 +101,7 @@ export class AuthManager {
       }
 
       // Setup auto-refresh
-      if (this.autoRefresh) {
+      if (this.autoRefresh && this.token) {
         this.setupAutoRefresh();
       }
 
@@ -149,7 +150,8 @@ export class AuthManager {
       );
 
       this.token = response.token;
-      this.refreshToken = response.refreshToken || this.refreshToken;
+      // Note: RefreshResponse doesn't include refreshToken in current API
+      // this.refreshToken remains unchanged
 
       // Store new token
       if (this.token) {

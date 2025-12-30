@@ -1,53 +1,53 @@
 # Basic Usage Example
 
-這是一個展示 AInTandem TypeScript SDK 基礎功能的範例專案。
+This is an example project demonstrating the basic features of the AInTandem TypeScript SDK.
 
-## 功能展示
+## Features Demonstrated
 
-本範例涵蓋以下功能：
+This example covers the following features:
 
-1. **用戶認證** - 登入、Token 驗證
-2. **工作流管理** - 列出工作流、獲取詳情
-3. **任務執行** - 異步任務提交
-4. **任務查詢** - 獲取任務詳情
-5. **任務歷史** - 查詢歷史記錄
-6. **隊列狀態** - 查看隊列統計
-7. **實時進度追蹤** - WebSocket 進度訂閱
+1. **User Authentication** - Login, Token verification
+2. **Workflow Management** - List workflows, get details
+3. **Task Execution** - Async task submission
+4. **Task Query** - Get task details
+5. **Task History** - Query historical records
+6. **Queue Status** - View queue statistics
+7. **Real-time Progress Tracking** - WebSocket progress subscription
 
-## 安裝依賴
+## Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-## 配置環境變量
+## Configure Environment Variables
 
-創建 `.env` 文件：
+Create a `.env` file:
 
 ```bash
-# API 配置
+# API configuration
 API_BASE_URL=https://api.aintandem.com
 API_USERNAME=your-username
 API_PASSWORD=your-password
 PROJECT_ID=your-project-id
 ```
 
-或直接修改 `src/index.ts` 中的 `CONFIG` 對象。
+Or directly modify the `CONFIG` object in `src/index.ts`.
 
-## 運行範例
+## Run Example
 
 ```bash
-# 開發模式（熱重載）
+# Development mode (hot reload)
 pnpm dev
 
-# 直接運行
+# Direct run
 pnpm start
 
-# 類型檢查
+# Type check
 pnpm typecheck
 ```
 
-## 輸出示例
+## Output Example
 
 ```
 ╔══════════════════════════════════════════════════════╗
@@ -78,20 +78,20 @@ Token Valid: true
 ...
 ```
 
-## 程式碼結構
+## Code Structure
 
 ```
 basic-usage/
 ├── src/
-│   └── index.ts          # 主程式，包含所有範例
+│   └── index.ts          # Main program containing all examples
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## 學習重點
+## Key Learning Points
 
-### 1. 客戶端初始化
+### 1. Client Initialization
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -101,36 +101,36 @@ const client = new AInTandemClient({
 });
 ```
 
-### 2. 認證
+### 2. Authentication
 
 ```typescript
-// 登入
+// Login
 const response = await client.auth.login({
   username: 'user',
   password: 'pass',
 });
 
-// 檢查認證狀態
+// Check authentication status
 const isAuthenticated = client.auth.isAuthenticated();
 
-// 驗證 Token
+// Verify Token
 const isValid = await client.auth.verify();
 ```
 
-### 3. 工作流操作
+### 3. Workflow Operations
 
 ```typescript
-// 列出工作流
+// List workflows
 const workflows = await client.workflows.listWorkflows('published');
 
-// 獲取詳情
+// Get details
 const workflow = await client.workflows.getWorkflow('workflow-id');
 ```
 
-### 4. 任務執行
+### 4. Task Execution
 
 ```typescript
-// 異步任務
+// Async task
 const task = await client.tasks.executeTask({
   projectId: 'project-123',
   task: 'data-analysis',
@@ -138,11 +138,11 @@ const task = await client.tasks.executeTask({
   async: true,
 });
 
-// 查詢任務
+// Query task
 const details = await client.tasks.getTask('project-123', task.id);
 ```
 
-### 5. 實時進度追蹤
+### 5. Real-time Progress Tracking
 
 ```typescript
 await client.subscribeToTask(
@@ -154,31 +154,31 @@ await client.subscribeToTask(
 );
 ```
 
-## 下一步
+## Next Steps
 
-完成本範例後，您可以：
+After completing this example, you can:
 
-1. 查看 [React 應用範例](../react-app/) - 了解如何在 React 中使用 SDK
-2. 查看 [進度追蹤範例](../progress-tracking/) - 深入了解實時進度追蹤
-3. 閱讀 [使用指南](../../docs/guides/) - 詳細的功能文檔
+1. Check the [React Application Example](../react-app/) - Learn how to use SDK in React
+2. Check the [Progress Tracking Example](../progress-tracking/) - Deep dive into real-time progress tracking
+3. Read the [Usage Guides](../../docs/guides/) - Detailed feature documentation
 
-## 常見問題
+## FAQ
 
-### Q: 如何獲取 API 憑證？
+### Q: How to get API credentials?
 
-請聯繫您的 AInTandem 管理員或訪問 https://aintandem.com 註冊帳號。
+Please contact your AInTandem administrator or visit https://aintandem.com to register an account.
 
-### Q: 範例運行失敗怎麼辦？
+### Q: What if the example fails to run?
 
-1. 檢查網絡連接
-2. 驗證 API URL 和憑證
-3. 確認專目 ID 正確
-4. 查看控制台錯誤訊息
+1. Check network connection
+2. Verify API URL and credentials
+3. Confirm project ID is correct
+4. Check console error messages
 
-### Q: 如何修改範例代碼？
+### Q: How to modify the example code?
 
-您可以自由修改 `src/index.ts` 來試試不同的功能。使用 `pnpm dev` 可以熱重載代碼。
+You can freely modify `src/index.ts` to try different features. Use `pnpm dev` for hot reloading code.
 
-## 授權
+## License
 
 MIT © AInTandem

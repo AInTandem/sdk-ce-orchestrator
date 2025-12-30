@@ -1,31 +1,31 @@
-# SDK 測試快速入門指南
+# SDK Testing Quick Start Guide
 
-## 🚀 5 分鐘快速開始
+## 🚀 5 Minutes Quick Start
 
-### 1. 運行 SDK 測試
+### 1. Run SDK Tests
 
 ```bash
-# 在 SDK 目錄
+# In SDK directory
 cd /base-root/aintandem/default/sdk
 
-# 運行所有測試
+# Run all tests
 pnpm test
 
-# 運行測試並生成覆蓋率報告
+# Run tests with coverage report
 pnpm test:coverage
 
-# 監聽模式（開發時使用）
+# Watch mode (for development)
 pnpm test:watch
 ```
 
-### 2. 運行 E2E 測試（需要 Orchestrator 運行中）
+### 2. Run E2E Tests (requires Orchestrator running)
 
 ```bash
-# 確保 Orchestrator 運行在 http://localhost:9900
+# Ensure Orchestrator is running on http://localhost:9900
 cd /base-root/aintandem/default/orchestrator
 pnpm dev
 
-# 在另一個終端運行 E2E 測試
+# Run E2E tests in another terminal
 cd /base-root/aintandem/default/sdk
 ORCHESTRATOR_URL=http://localhost:9900 \
 TEST_USER=admin \
@@ -33,38 +33,38 @@ TEST_PASSWORD=admin123 \
 pnpm test:e2e
 ```
 
-## 📁 測試文件位置
+## 📁 Test File Locations
 
 ```
 sdk/
-├── vitest.config.ts              # 單元測試配置
-├── vitest.e2e.config.ts          # E2E 測試配置
-├── vitest.setup.ts               # MSW Mock 設置
+├── vitest.config.ts              # Unit test configuration
+├── vitest.e2e.config.ts          # E2E test configuration
+├── vitest.setup.ts               # MSW Mock setup
 │
 ├── packages/core/src/client/
-│   └── index.test.ts             # SDK Core 測試 ✅
+│   └── index.test.ts             # SDK Core tests ✅
 │
 ├── packages/react/src/hooks/
-│   ├── useAInTandem.test.tsx     # React Hooks 測試 ✅
-│   └── useTaskProgress.test.tsx  # 進度追蹤測試 ✅
+│   ├── useAInTandem.test.tsx     # React Hooks tests ✅
+│   └── useTaskProgress.test.tsx  # Progress tracking tests ✅
 │
 └── tests/e2e/
-    └── sdk-orchestrator.e2e.test.ts  # E2E 測試 ✅
+    └── sdk-orchestrator.e2e.test.ts  # E2E tests ✅
 ```
 
-## 🎯 測試覆蓋範圍
+## 🎯 Test Coverage
 
-### ✅ SDK Core 測試（550+ 行，80+ 用例）
-- 客戶端初始化
-- 認證流程
-- Settings 服務
-- Workflows 服務
-- Tasks 服務
-- Containers 服務
-- 錯誤處理
-- 服務整合
+### ✅ SDK Core Tests (550+ lines, 80+ test cases)
+- Client initialization
+- Authentication flow
+- Settings service
+- Workflows service
+- Tasks service
+- Containers service
+- Error handling
+- Service integration
 
-### ✅ React Hooks 測試（300+ 行，30+ 用例）
+### ✅ React Hooks Tests (300+ lines, 30+ test cases)
 - useAInTandem
 - useAuth
 - useWorkflows
@@ -72,61 +72,61 @@ sdk/
 - useSettings
 - Provider callbacks
 
-### ✅ 實時進度追蹤測試（350+ 行，20+ 用例）
+### ✅ Real-time Progress Tracking Tests (350+ lines, 20+ test cases)
 - useTaskProgress
 - useWorkflowProgress
 - useContainerProgress
-- WebSocket 連接管理
+- WebSocket connection management
 
-### ✅ E2E 測試（450+ 行，20+ 用例）
-- 真實 API 驗證
-- 所有服務端到端流程
-- 錯誤處理
-- 性能測試
+### ✅ E2E Tests (450+ lines, 20+ test cases)
+- Real API validation
+- All service end-to-end flows
+- Error handling
+- Performance testing
 
-## 🛠️ 常用命令
+## 🛠️ Common Commands
 
 ```bash
-# SDK 測試
-pnpm test                    # 運行單元測試
-pnpm test:watch              # 監聽模式
-pnpm test:coverage           # 覆蓋率報告
-pnpm test:e2e                # E2E 測試
-pnpm test:all                # 所有測試
+# SDK tests
+pnpm test                    # Run unit tests
+pnpm test:watch              # Watch mode
+pnpm test:coverage           # Coverage report
+pnpm test:e2e                # E2E tests
+pnpm test:all                # All tests
 
-# Orchestrator 測試
-pnpm test:unit               # 單元測試
-pnpm test:e2e                # E2E 測試
-pnpm test:cov                # 覆蓋率
+# Orchestrator tests
+pnpm test:unit               # Unit tests
+pnpm test:e2e                # E2E tests
+pnpm test:cov                # Coverage
 ```
 
-## 📊 查看覆蓋率報告
+## 📊 View Coverage Report
 
 ```bash
 pnpm test:coverage
 
-# 打開 HTML 報告
+# Open HTML report
 open coverage/index.html     # macOS
 xdg-open coverage/index.html # Linux
 start coverage/index.html    # Windows
 ```
 
-## 🔍 運行特定測試
+## 🔍 Run Specific Tests
 
 ```bash
-# 運行特定文件
+# Run specific file
 pnpm test packages/core/src/client/index.test.ts
 
-# 運行匹配的測試
+# Run matching tests
 pnpm test -t "should login"
 
-# 運行特定測試套件
+# Run specific test suite
 pnpm test --testNamePattern="AuthService"
 ```
 
-## 💡 編寫新測試
+## 💡 Writing New Tests
 
-### 基本模板
+### Basic Template
 
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -149,7 +149,7 @@ describe('Feature Name', () => {
 });
 ```
 
-### React Hook 測試模板
+### React Hook Test Template
 
 ```typescript
 import { renderHook, act, waitFor } from '@testing-library/react';
@@ -169,29 +169,29 @@ it('should update state', async () => {
 });
 ```
 
-## 📖 更多資源
+## 📖 More Resources
 
-- [完整測試指南](./docs/TESTING.md)
-- [Phase 10 工作報告](../orchestrator/worklogs/typescript-sdk-development/phase-10-integration-testing.md)
-- [測試總結](./TESTING_SUMMARY.md)
+- [Complete Testing Guide](./docs/TESTING.md)
+- [Phase 10 Work Report](../orchestrator/worklogs/typescript-sdk-development/phase-10-integration-testing.md)
+- [Testing Summary](./TESTING_SUMMARY.md)
 
-## ❓ 遇到問題？
+## ❓ Having Problems?
 
-### 測試失敗？
-1. 檢查 Orchestrator 是否運行（E2E 測試）
-2. 清除快取：`rm -rf node_modules/.vitest`
-3. 重新安裝依賴：`pnpm install`
+### Tests failing?
+1. Check if Orchestrator is running (for E2E tests)
+2. Clear cache: `rm -rf node_modules/.vitest`
+3. Reinstall dependencies: `pnpm install`
 
-### Mock 不工作？
-1. 檢查 `vitest.setup.ts` 中的 MSW handlers
-2. 確認 URL 匹配
-3. 查看測試日誌
+### Mock not working?
+1. Check MSW handlers in `vitest.setup.ts`
+2. Confirm URL matching
+3. Check test logs
 
-### 覆蓋率低？
-1. 運行 `pnpm test:coverage`
-2. 打開 `coverage/index.html`
-3. 找到未覆蓋的代碼並添加測試
+### Low coverage?
+1. Run `pnpm test:coverage`
+2. Open `coverage/index.html`
+3. Find uncovered code and add tests
 
 ---
 
-**開始測試吧！** 🚀
+**Start testing!** 🚀

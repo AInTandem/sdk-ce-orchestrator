@@ -12,6 +12,7 @@ import type {
   WorkflowExecutionResponse,
   WorkflowStepExecutionResponse,
   WorkflowStatus,
+  WorkflowDefinition,
 } from '../types/generated/index.js';
 import { HttpClient } from '../client/HttpClient.js';
 
@@ -257,50 +258,31 @@ export class WorkflowService {
 }
 
 // ============================================================================
-// Additional Types (not in OpenAPI)
+// Re-export workflow types from generated schema
 // ============================================================================
 
+// Types are now imported from '../types/generated/index.js'
+// Export them here for convenience
+export type { WorkflowDefinition, WorkflowPhase, WorkflowStep, WorkflowTransition } from '../types/generated/index.js';
+
+// Custom Workflow type that extends the generated types with additional fields
 export interface Workflow {
   id: string;
   name: string;
   description?: string;
   status: WorkflowStatus;
-  definition: {
-    phases: WorkflowPhase[];
-    transitions?: WorkflowTransition[];
-  };
+  definition: WorkflowDefinition;
+  version: number;
   createdAt: string;
   updatedAt: string;
   createdById?: string;
-}
-
-export interface WorkflowPhase {
-  id: string;
-  name: string;
-  steps: WorkflowStep[];
-}
-
-export interface WorkflowStep {
-  id: string;
-  name: string;
-  type: string;
-  config?: Record<string, unknown>;
-}
-
-export interface WorkflowTransition {
-  from: string;
-  to: string;
-  condition?: string;
 }
 
 export interface WorkflowVersion {
   id: string;
   workflowId: string;
   version: number;
-  definition: {
-    phases: WorkflowPhase[];
-    transitions?: WorkflowTransition[];
-  };
+  definition: WorkflowDefinition;
   createdAt: string;
   createdById?: string;
 }

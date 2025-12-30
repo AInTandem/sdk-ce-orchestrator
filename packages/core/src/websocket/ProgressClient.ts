@@ -9,17 +9,17 @@ import type {
   ProgressEventListener,
   TaskEventListener,
   WorkflowEventListener,
-  ContainerEventListener,
+  SandboxEventListener,
   TaskCompletedEvent,
   TaskFailedEvent,
   WorkflowExecutionCompletedEvent,
   WorkflowExecutionFailedEvent,
   EventListener,
 } from './events.js';
-import { isTaskEvent, isWorkflowEvent, isContainerEvent } from './events.js';
+import { isTaskEvent, isWorkflowEvent, isSandboxEvent } from './events.js';
 
 export interface ProgressClientConfig {
-  /** WebSocket URL */
+  /** WebSocket base URL (e.g., 'ws://localhost:9900/api/progress/subscribe') */
   url: string;
   /** Authentication token */
   token?: string;
@@ -46,6 +46,8 @@ export interface TaskProgressOptions {
 }
 
 export interface WorkflowProgressOptions {
+  /** Project ID */
+  projectId: string;
   /** Workflow ID (optional, subscribe to all workflows if not provided) */
   workflowId?: string;
   /** Execution ID (optional, subscribe to all executions if not provided) */
@@ -58,13 +60,13 @@ export interface WorkflowProgressOptions {
   onFailed?: (event: WorkflowExecutionFailedEvent) => void;
 }
 
-export interface ContainerProgressOptions {
+export interface SandboxProgressOptions {
   /** Project ID */
   projectId: string;
-  /** Container ID (optional, subscribe to all containers if not provided) */
-  containerId?: string;
-  /** Callback for container events */
-  onEvent: ContainerEventListener;
+  /** Sandbox ID (optional, subscribe to all sandboxes if not provided) */
+  sandboxId?: string;
+  /** Callback for sandbox events */
+  onEvent: SandboxEventListener;
 }
 
 /**
@@ -72,16 +74,17 @@ export interface ContainerProgressOptions {
  *
  * High-level API for subscribing to progress updates via WebSocket.
  *
+ * The Orchestrator API requires a WebSocket URL format of:
+ * `/api/progress/subscribe/{projectId}?token={jwt}`
+ *
  * @example
  * ```typescript
  * const progressClient = new ProgressClient({
- *   url: 'ws://localhost:9900/ws',
+ *   url: 'ws://localhost:9900/api/progress/subscribe',
  *   token: 'your-jwt-token',
  * });
  *
- * await progressClient.connect();
- *
- * // Subscribe to task progress
+ * // Subscribe to task progress (auto-connects with projectId)
  * const subscription = await progressClient.subscribeToTask({
  *   projectId: 'project-123',
  *   taskId: 'task-456',
@@ -98,21 +101,13 @@ export interface ContainerProgressOptions {
  * ```
  */
 export class ProgressClient {
-  private wsManager: WebSocketManager;
+  // Map of projectId to WebSocketManager instances
+  private wsManagers = new Map<string, WebSocketManager>();
   private subscriptions = new Map<string, Set<ProgressEventListener>>();
+  private config: ProgressClientConfig;
 
   constructor(config: ProgressClientConfig) {
-    this.wsManager = new WebSocketManager({
-      url: config.url,
-      token: config.token,
-    });
-
-    // Auto-connect if requested
-    if (config.autoConnect) {
-      this.connect().catch((error) => {
-        console.error('[ProgressClient] Auto-connect failed:', error);
-      });
-    }
+    this.config = config;
   }
 
   // ========================================================================
@@ -120,35 +115,73 @@ export class ProgressClient {
   // ========================================================================
 
   /**
-   * Connect to WebSocket server
-   */
-  async connect(): Promise<void> {
-    return this.wsManager.connect();
-  }
-
-  /**
-   * Disconnect from WebSocket server
-   */
-  disconnect(): void {
-    this.wsManager.disconnect();
-  }
-
-  /**
-   * Check if connected
+   * Connect to WebSocket server for a specific project
    *
+   * @param projectId - Project ID to connect for
+   */
+  async connect(projectId: string): Promise<void> {
+    let manager = this.wsManagers.get(projectId);
+
+    if (!manager) {
+      // Build WebSocket URL with projectId
+      const url = `${this.config.url}/${projectId}`;
+
+      manager = new WebSocketManager({
+        url,
+        token: this.config.token,
+      });
+
+      this.wsManagers.set(projectId, manager);
+    }
+
+    // Only connect if not already connected
+    if (!manager.isConnected()) {
+      await manager.connect();
+    }
+  }
+
+  /**
+   * Disconnect from WebSocket server for a specific project
+   *
+   * @param projectId - Project ID to disconnect from
+   */
+  disconnect(projectId: string): void {
+    const manager = this.wsManagers.get(projectId);
+    if (manager) {
+      manager.disconnect();
+      this.wsManagers.delete(projectId);
+    }
+  }
+
+  /**
+   * Disconnect all WebSocket connections
+   */
+  disconnectAll(): void {
+    for (const [projectId] of this.wsManagers.entries()) {
+      this.disconnect(projectId);
+    }
+  }
+
+  /**
+   * Check if connected to a specific project
+   *
+   * @param projectId - Project ID
    * @returns True if connected
    */
-  isConnected(): boolean {
-    return this.wsManager.isConnected();
+  isConnected(projectId: string): boolean {
+    const manager = this.wsManagers.get(projectId);
+    return manager ? manager.isConnected() : false;
   }
 
   /**
-   * Get connection state
+   * Get connection state for a specific project
    *
+   * @param projectId - Project ID
    * @returns Current connection state
    */
-  getConnectionState(): string {
-    return this.wsManager.getState();
+  getConnectionState(projectId: string): string {
+    const manager = this.wsManagers.get(projectId);
+    return manager ? manager.getState() : 'disconnected';
   }
 
   // ========================================================================
@@ -162,6 +195,10 @@ export class ProgressClient {
    * @returns Subscription object with unsubscribe method
    */
   async subscribeToTask(options: TaskProgressOptions): Promise<ProgressSubscription> {
+    // Ensure connection exists for this project
+    await this.connect(options.projectId);
+
+    const manager = this.wsManagers.get(options.projectId)!;
     const subscriptionId = `task:${options.projectId}:${options.taskId || '*'}`;
 
     const listener: ProgressEventListener = (event) => {
@@ -189,22 +226,26 @@ export class ProgressClient {
     };
 
     this.addEventListener(subscriptionId, listener);
-    this.wsManager.on('task_queued', listener as EventListener);
-    this.wsManager.on('task_started', listener as EventListener);
-    this.wsManager.on('step_progress', listener as EventListener);
-    this.wsManager.on('task_completed', listener as EventListener);
-    this.wsManager.on('task_failed', listener as EventListener);
-    this.wsManager.on('task_cancelled', listener as EventListener);
+    manager.on('task_queued', listener as EventListener);
+    manager.on('task_started', listener as EventListener);
+    manager.on('step_progress', listener as EventListener);
+    manager.on('output', listener as EventListener);
+    manager.on('artifact', listener as EventListener);
+    manager.on('task_completed', listener as EventListener);
+    manager.on('task_failed', listener as EventListener);
+    manager.on('task_cancelled', listener as EventListener);
 
     return {
       unsubscribe: () => {
         this.removeEventListener(subscriptionId, listener);
-        this.wsManager.off('task_queued', listener as EventListener);
-        this.wsManager.off('task_started', listener as EventListener);
-        this.wsManager.off('step_progress', listener as EventListener);
-        this.wsManager.off('task_completed', listener as EventListener);
-        this.wsManager.off('task_failed', listener as EventListener);
-        this.wsManager.off('task_cancelled', listener as EventListener);
+        manager.off('task_queued', listener as EventListener);
+        manager.off('task_started', listener as EventListener);
+        manager.off('step_progress', listener as EventListener);
+        manager.off('output', listener as EventListener);
+        manager.off('artifact', listener as EventListener);
+        manager.off('task_completed', listener as EventListener);
+        manager.off('task_failed', listener as EventListener);
+        manager.off('task_cancelled', listener as EventListener);
       },
     };
   }
@@ -216,9 +257,18 @@ export class ProgressClient {
    * @returns Subscription object with unsubscribe method
    */
   async subscribeToWorkflow(options: WorkflowProgressOptions): Promise<ProgressSubscription> {
-    const subscriptionId = `workflow:${options.workflowId || '*'}:${options.executionId || '*'}`;
+    // Ensure connection exists for this project
+    await this.connect(options.projectId);
+
+    const manager = this.wsManagers.get(options.projectId)!;
+    const subscriptionId = `workflow:${options.projectId}:${options.workflowId || '*'}:${options.executionId || '*'}`;
 
     const listener: ProgressEventListener = (event) => {
+      // Filter by project
+      if (event.projectId !== options.projectId) {
+        return;
+      }
+
       // Filter by workflow if specified
       if (options.workflowId && 'workflowId' in event && event.workflowId !== options.workflowId) {
         return;
@@ -243,38 +293,42 @@ export class ProgressClient {
     };
 
     this.addEventListener(subscriptionId, listener);
-    this.wsManager.on('workflow_execution_created', listener as EventListener);
-    this.wsManager.on('workflow_execution_started', listener as EventListener);
-    this.wsManager.on('workflow_phase_started', listener as EventListener);
-    this.wsManager.on('workflow_phase_completed', listener as EventListener);
-    this.wsManager.on('workflow_execution_completed', listener as EventListener);
-    this.wsManager.on('workflow_execution_failed', listener as EventListener);
-    this.wsManager.on('workflow_execution_paused', listener as EventListener);
-    this.wsManager.on('workflow_execution_resumed', listener as EventListener);
+    manager.on('workflow_execution_created', listener as EventListener);
+    manager.on('workflow_execution_started', listener as EventListener);
+    manager.on('workflow_phase_started', listener as EventListener);
+    manager.on('workflow_phase_completed', listener as EventListener);
+    manager.on('workflow_execution_completed', listener as EventListener);
+    manager.on('workflow_execution_failed', listener as EventListener);
+    manager.on('workflow_execution_paused', listener as EventListener);
+    manager.on('workflow_execution_resumed', listener as EventListener);
 
     return {
       unsubscribe: () => {
         this.removeEventListener(subscriptionId, listener);
-        this.wsManager.off('workflow_execution_created', listener as EventListener);
-        this.wsManager.off('workflow_execution_started', listener as EventListener);
-        this.wsManager.off('workflow_phase_started', listener as EventListener);
-        this.wsManager.off('workflow_phase_completed', listener as EventListener);
-        this.wsManager.off('workflow_execution_completed', listener as EventListener);
-        this.wsManager.off('workflow_execution_failed', listener as EventListener);
-        this.wsManager.off('workflow_execution_paused', listener as EventListener);
-        this.wsManager.off('workflow_execution_resumed', listener as EventListener);
+        manager.off('workflow_execution_created', listener as EventListener);
+        manager.off('workflow_execution_started', listener as EventListener);
+        manager.off('workflow_phase_started', listener as EventListener);
+        manager.off('workflow_phase_completed', listener as EventListener);
+        manager.off('workflow_execution_completed', listener as EventListener);
+        manager.off('workflow_execution_failed', listener as EventListener);
+        manager.off('workflow_execution_paused', listener as EventListener);
+        manager.off('workflow_execution_resumed', listener as EventListener);
       },
     };
   }
 
   /**
-   * Subscribe to container events
+   * Subscribe to sandbox events
    *
-   * @param options - Container progress options
+   * @param options - Sandbox progress options
    * @returns Subscription object with unsubscribe method
    */
-  async subscribeToContainer(options: ContainerProgressOptions): Promise<ProgressSubscription> {
-    const subscriptionId = `container:${options.projectId}:${options.containerId || '*'}`;
+  async subscribeToSandbox(options: SandboxProgressOptions): Promise<ProgressSubscription> {
+    // Ensure connection exists for this project
+    await this.connect(options.projectId);
+
+    const manager = this.wsManagers.get(options.projectId)!;
+    const subscriptionId = `sandbox:${options.projectId}:${options.sandboxId || '*'}`;
 
     const listener: ProgressEventListener = (event) => {
       // Filter by project
@@ -282,42 +336,53 @@ export class ProgressClient {
         return;
       }
 
-      // Filter by container if specified
-      if (options.containerId && 'containerId' in event && event.containerId !== options.containerId) {
+      // Filter by sandbox if specified
+      // Note: Server may send events with containerId field, handle both for compatibility
+      const eventId = (event as any).sandboxId || (event as any).containerId;
+      if (options.sandboxId && eventId && eventId !== options.sandboxId) {
         return;
       }
 
-      // Type guard for container events
-      if (isContainerEvent(event)) {
+      // Type guard for sandbox events
+      if (isSandboxEvent(event)) {
         options.onEvent(event);
       }
     };
 
     this.addEventListener(subscriptionId, listener);
-    this.wsManager.on('container_created', listener as EventListener);
-    this.wsManager.on('container_started', listener as EventListener);
-    this.wsManager.on('container_stopped', listener as EventListener);
-    this.wsManager.on('container_error', listener as EventListener);
+    // Subscribe to sandbox events from WebSocket
+    manager.on('sandbox_created', listener as EventListener);
+    manager.on('sandbox_started', listener as EventListener);
+    manager.on('sandbox_stopped', listener as EventListener);
+    manager.on('sandbox_error', listener as EventListener);
 
     return {
       unsubscribe: () => {
         this.removeEventListener(subscriptionId, listener);
-        this.wsManager.off('container_created', listener as EventListener);
-        this.wsManager.off('container_started', listener as EventListener);
-        this.wsManager.off('container_stopped', listener as EventListener);
-        this.wsManager.off('container_error', listener as EventListener);
+        manager.off('sandbox_created', listener as EventListener);
+        manager.off('sandbox_started', listener as EventListener);
+        manager.off('sandbox_stopped', listener as EventListener);
+        manager.off('sandbox_error', listener as EventListener);
       },
     };
   }
 
   /**
-   * Subscribe to all progress events
+   * Subscribe to all progress events for a project
    *
+   * @param projectId - Project ID
    * @param onEvent - Progress event callback
    * @returns Subscription object with unsubscribe method
    */
-  async subscribeToProgress(onEvent: ProgressEventListener): Promise<ProgressSubscription> {
-    const subscriptionId = `progress:all:${Date.now()}`;
+  async subscribeToProgress(
+    projectId: string,
+    onEvent: ProgressEventListener
+  ): Promise<ProgressSubscription> {
+    // Ensure connection exists for this project
+    await this.connect(projectId);
+
+    const manager = this.wsManagers.get(projectId)!;
+    const subscriptionId = `progress:all:${projectId}:${Date.now()}`;
 
     this.addEventListener(subscriptionId, onEvent);
 
@@ -326,6 +391,8 @@ export class ProgressClient {
       'task_queued',
       'task_started',
       'step_progress',
+      'output',
+      'artifact',
       'task_completed',
       'task_failed',
       'task_cancelled',
@@ -337,21 +404,21 @@ export class ProgressClient {
       'workflow_execution_failed',
       'workflow_execution_paused',
       'workflow_execution_resumed',
-      'container_created',
-      'container_started',
-      'container_stopped',
-      'container_error',
+      'sandbox_created',
+      'sandbox_started',
+      'sandbox_stopped',
+      'sandbox_error',
     ];
 
     eventTypes.forEach((eventType) => {
-      this.wsManager.on(eventType, onEvent as EventListener);
+      manager.on(eventType, onEvent as EventListener);
     });
 
     return {
       unsubscribe: () => {
         this.removeEventListener(subscriptionId, onEvent);
         eventTypes.forEach((eventType) => {
-          this.wsManager.off(eventType, onEvent as EventListener);
+          manager.off(eventType, onEvent as EventListener);
         });
       },
     };
@@ -362,19 +429,27 @@ export class ProgressClient {
   // ========================================================================
 
   /**
-   * Subscribe to connection state changes
+   * Subscribe to connection state changes for a project
    *
+   * @param projectId - Project ID
    * @param listener - Connection event listener
    * @returns Unsubscribe function
    */
   onConnectionState(
+    projectId: string,
     listener: (event: import('./events.js').ConnectedEvent | import('./events.js').DisconnectedEvent | import('./events.js').ConnectionErrorEvent) => void
   ): () => void {
-    this.wsManager.onConnectionState(listener);
+    const manager = this.wsManagers.get(projectId);
 
-    return () => {
-      this.wsManager.offConnectionState(listener);
-    };
+    if (manager) {
+      manager.onConnectionState(listener);
+      return () => {
+        manager.offConnectionState(listener);
+      };
+    }
+
+    // Return no-op if manager doesn't exist yet
+    return () => {};
   }
 
   // ========================================================================

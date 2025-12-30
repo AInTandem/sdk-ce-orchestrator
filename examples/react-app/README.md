@@ -1,78 +1,78 @@
 # React Application Example
 
-這是一個展示如何在 React 應用中使用 AInTandem TypeScript SDK 的完整範例。
+This is a complete example demonstrating how to use the AInTandem TypeScript SDK in a React application.
 
-## 功能展示
+## Features Demonstrated
 
-本範例展示以下功能：
+This example showcases the following features:
 
-1. **Provider 配置** - AInTandemProvider 設置
-2. **認證整合** - 使用 useAuth hook
-3. **錯誤邊界** - ErrorBoundary 組件
-4. **工作流管理** - 使用 useWorkflows 和 useWorkflow hooks
-5. **任務執行** - 使用 useExecuteTask hook
-6. **實時進度追蹤** - 使用 useTaskProgress 和 ProgressTracker 組件
-7. **UI 組件** - ProgressBar, CircularProgress 等預構建組件
+1. **Provider Configuration** - AInTandemProvider setup
+2. **Authentication Integration** - Using useAuth hook
+3. **Error Boundary** - ErrorBoundary component
+4. **Workflow Management** - Using useWorkflows and useWorkflow hooks
+5. **Task Execution** - Using useExecuteTask hook
+6. **Real-time Progress Tracking** - Using useTaskProgress and ProgressTracker components
+7. **UI Components** - Pre-built components like ProgressBar, CircularProgress
 
-## 安裝依賴
+## Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-## 配置環境變量
+## Configure Environment Variables
 
-創建 `.env` 文件：
+Create a `.env` file:
 
 ```bash
 VITE_API_BASE_URL=https://api.aintandem.com
 VITE_PROJECT_ID=demo-project
 ```
 
-## 運行範例
+## Run Example
 
 ```bash
-# 開發模式
+# Development mode
 pnpm dev
 
-# 建置生產版本
+# Build production version
 pnpm build
 
-# 預覽生產版本
+# Preview production version
 pnpm preview
 
-# 類型檢查
+# Type check
 pnpm typecheck
 ```
 
-訪問 http://localhost:5173
+Visit http://localhost:5173
 
-## 程式碼結構
+## Code Structure
 
 ```
 react-app/
 ├── src/
-│   ├── main.tsx           # 應用入口
-│   ├── App.tsx            # 主應用組件
+│   ├── main.tsx           # App entry point
+│   ├── App.tsx            # Main app component
 │   ├── components/
-│   │   ├── Dashboard.tsx      # 儀表板組件
-│   │   ├── LoginForm.tsx      # 登入表單
-│   │   ├── WorkflowList.tsx   # 工作流列表
-│   │   ├── WorkflowCard.tsx   # 工作流卡片
-│   │   ├── TaskList.tsx       # 任務列表
-│   │   ├── TaskExecutor.tsx   # 任務執行器
-│   │   └── LogoutButton.tsx   # 登出按鈕
+│   │   ├── Dashboard.tsx      # Dashboard component
+│   │   ├── LoginForm.tsx      # Login form
+│   │   ├── WorkflowList.tsx   # Workflow list
+│   │   ├── WorkflowCard.tsx   # Workflow card
+│   │   ├── TaskList.tsx       # Task list
+│   │   ├── TaskExecutor.tsx   # Task executor
+│   │   └── LogoutButton.tsx   # Logout button
 │   └── types/
-│       └── index.tsx          # 類型定義
+│       └── index.tsx          # Type definitions
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
 └── README.md
 ```
 
-## 關鍵組件說明
+## Key Component Descriptions
 
-### 1. App.tsx - 主應用
+### 1. App.tsx - Main Application
 
 ```tsx
 import { AInTandemProvider } from '@aintandem/sdk-react';
@@ -93,7 +93,7 @@ function App() {
 }
 ```
 
-### 2. LoginForm.tsx - 登入表單
+### 2. LoginForm.tsx - Login Form
 
 ```tsx
 import { useAuth } from '@aintandem/sdk-react';
@@ -122,7 +122,7 @@ function LoginForm() {
 }
 ```
 
-### 3. WorkflowList.tsx - 工作流列表
+### 3. WorkflowList.tsx - Workflow List
 
 ```tsx
 import { useWorkflows } from '@aintandem/sdk-react';
@@ -143,7 +143,7 @@ function WorkflowList() {
 }
 ```
 
-### 4. TaskExecutor.tsx - 任務執行器
+### 4. TaskExecutor.tsx - Task Executor
 
 ```tsx
 import { useExecuteTask } from '@aintandem/sdk-react';
@@ -174,78 +174,78 @@ function TaskExecutor({ projectId }: { projectId: string }) {
 }
 ```
 
-## 使用的 Hooks
+## Hooks Used
 
 ### useAuth
-認證管理，提供 login/logout 功能
+Authentication management, provides login/logout functionality
 
 ### useWorkflows
-工作流列表管理
+Workflow list management
 
 ### useWorkflow
-單個工作流詳情和操作
+Single workflow details and operations
 
 ### useExecuteTask
-任務執行
+Task execution
 
 ### useTaskProgress
-實時任務進度追蹤
+Real-time task progress tracking
 
 ### useTaskHistory
-任務歷史查詢
+Task history querying
 
 ### useQueueStatus
-隊列狀態監控
+Queue status monitoring
 
-## 使用的組件
+## Components Used
 
 ### ErrorBoundary
-錯誤邊界組件
+Error boundary component
 
 ### ProgressBar
-線性進度條
+Linear progress bar
 
 ### CircularProgress
-圓形進度條
+Circular progress bar
 
 ### ProgressTracker
-完整進度追蹤組件
+Complete progress tracking component
 
 ### CompactProgressTracker
-緊湊進度追蹤組件
+Compact progress tracking component
 
-## 樣式
+## Styling
 
-本範例使用基本 CSS，您可以自由替換成：
+This example uses basic CSS. You can freely replace it with:
 - Tailwind CSS
 - CSS Modules
 - Styled Components
 - emotion
 
-只需更新 vite.config.ts 中的 CSS 配置即可。
+Just update the CSS configuration in vite.config.ts.
 
-## 下一步
+## Next Steps
 
-完成本範例後，您可以：
+After completing this example, you can:
 
-1. 查看 [基礎使用範例](../basic-usage/) - 了解核心 SDK 功能
-2. 查看 [進度追蹤範例](../progress-tracking/) - 深入了解進度追蹤
-3. 閱讀 [使用指南](../../docs/guides/) - 詳細的功能文檔
+1. Check the [Basic Usage Example](../basic-usage/) - Learn about core SDK features
+2. Check the [Progress Tracking Example](../progress-tracking/) - Deep dive into progress tracking
+3. Read the [Usage Guides](../../docs/guides/) - Detailed feature documentation
 
-## 常見問題
+## FAQ
 
-### Q: 如何自定義樣式？
+### Q: How to customize styles?
 
-您可以修改 CSS 文件或替換成您喜歡的 CSS-in-JS 方案。
+You can modify CSS files or replace with your preferred CSS-in-JS solution.
 
-### Q: 如何添加路由？
+### Q: How to add routing?
 
-安裝 react-router-dom 並在 App.tsx 中配置路由。
+Install react-router-dom and configure routes in App.tsx.
 
-### Q: 如何處理全局錯誤？
+### Q: How to handle global errors?
 
-ErrorBoundary 已配置，您可以在 onError 回調中添加錯誤上報邏輯。
+ErrorBoundary is configured, you can add error reporting logic in the onError callback.
 
-## 授權
+## License
 
 MIT © AInTandem

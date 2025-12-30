@@ -38,7 +38,7 @@ import type { LoginRequest, LoginResponse } from '../types/generated/index.js';
 // Import services
 import { WorkflowService } from '../services/WorkflowService.js';
 import { TaskService } from '../services/TaskService.js';
-import { ContainerService } from '../services/ContainerService.js';
+import { SandboxService } from '../services/SandboxService.js';
 import { ContextService } from '../services/ContextService.js';
 import { SettingsService } from '../services/SettingsService.js';
 import { WorkspaceService } from '../services/WorkspaceService.js';
@@ -73,9 +73,9 @@ export class AInTandemClient {
   public readonly tasks: TaskService;
 
   /**
-   * Container service for container operations
+   * Sandbox service for sandbox operations
    */
-  public readonly containers: ContainerService;
+  public readonly sandboxes: SandboxService;
 
   /**
    * Context service for memory management
@@ -137,7 +137,7 @@ export class AInTandemClient {
     // Initialize all services
     this.workflows = new WorkflowService(this.httpClient);
     this.tasks = new TaskService(this.httpClient);
-    this.containers = new ContainerService(this.httpClient);
+    this.sandboxes = new SandboxService(this.httpClient);
     this.context = new ContextService(this.httpClient);
     this.settings = new SettingsService(this.httpClient);
     this.workspaces = new WorkspaceService(this.httpClient);
@@ -188,9 +188,8 @@ export class AInTandemClient {
    *
    * // Get progress client
    * const progress = client.getProgress();
-   * await progress.connect();
    *
-   * // Subscribe to task progress
+   * // Subscribe to task progress (auto-connects with projectId)
    * await progress.subscribeToTask({
    *   projectId: 'project-123',
    *   taskId: 'task-456',
@@ -246,10 +245,6 @@ export class AInTandemClient {
   ): Promise<() => void> {
     const progress = this.getProgress();
 
-    if (!progress.isConnected()) {
-      await progress.connect();
-    }
-
     const subscription = await progress.subscribeToTask({
       projectId,
       taskId,
@@ -264,27 +259,26 @@ export class AInTandemClient {
   /**
    * Subscribe to workflow progress (convenience method)
    *
-   * @param workflowId - Workflow ID
-   * @param executionId - Execution ID (optional)
+   * @param projectId - Project ID
+   * @param workflowId - Workflow ID (optional)
    * @param onEvent - Event callback
+   * @param executionId - Execution ID (optional)
    * @param onComplete - Completion callback (optional)
    * @param onFailed - Failure callback (optional)
    * @returns Unsubscribe function
    */
   async subscribeToWorkflow(
-    workflowId: string,
+    projectId: string,
     onEvent: (event: import('../websocket/events.js').WorkflowEvent) => void,
+    workflowId?: string,
     executionId?: string,
     onComplete?: (event: import('../websocket/events.js').WorkflowExecutionCompletedEvent) => void,
     onFailed?: (event: import('../websocket/events.js').WorkflowExecutionFailedEvent) => void
   ): Promise<() => void> {
     const progress = this.getProgress();
 
-    if (!progress.isConnected()) {
-      await progress.connect();
-    }
-
     const subscription = await progress.subscribeToWorkflow({
+      projectId,
       workflowId,
       executionId,
       onEvent,
@@ -296,27 +290,23 @@ export class AInTandemClient {
   }
 
   /**
-   * Subscribe to container events (convenience method)
+   * Subscribe to sandbox events (convenience method)
    *
    * @param projectId - Project ID
-   * @param containerId - Container ID (optional)
    * @param onEvent - Event callback
+   * @param sandboxId - Sandbox ID (optional)
    * @returns Unsubscribe function
    */
-  async subscribeToContainer(
+  async subscribeToSandbox(
     projectId: string,
-    onEvent: (event: import('../websocket/events.js').ContainerEvent) => void,
-    containerId?: string
+    onEvent: (event: import('../websocket/events.js').SandboxEvent) => void,
+    sandboxId?: string
   ): Promise<() => void> {
     const progress = this.getProgress();
 
-    if (!progress.isConnected()) {
-      await progress.connect();
-    }
-
-    const subscription = await progress.subscribeToContainer({
+    const subscription = await progress.subscribeToSandbox({
       projectId,
-      containerId,
+      sandboxId,
       onEvent,
     });
 
@@ -332,8 +322,9 @@ export class AInTandemClient {
     // Convert HTTP to WebSocket protocol
     let wsUrl = baseURL.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
 
-    // Remove trailing slash and add /ws path
-    wsUrl = wsUrl.replace(/\/$/, '') + '/ws';
+    // Remove trailing slash and add /api/progress/subscribe path
+    // The actual projectId will be added when subscribing
+    wsUrl = wsUrl.replace(/\/$/, '') + '/api/progress/subscribe';
 
     return wsUrl;
   }

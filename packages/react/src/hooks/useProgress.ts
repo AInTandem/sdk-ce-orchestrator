@@ -14,7 +14,7 @@ import { useAInTandem } from '../providers/AInTandemProvider.js';
 import type {
   TaskEvent,
   WorkflowEvent,
-  ContainerEvent,
+  SandboxEvent,
   ProgressEvent,
   TaskCompletedEvent,
   TaskFailedEvent,
@@ -204,22 +204,22 @@ export function useWorkflowProgress(
 /**
  * Use Container Progress Hook
  *
- * Subscribes to container events.
+ * Subscribes to sandbox (container) events.
  *
  * @param projectId - Project ID
- * @param containerId - Container ID (optional)
+ * @param sandboxId - Sandbox ID (optional)
  *
  * @example
  * ```tsx
  * import { useContainerProgress } from '@aintandem/sdk-react';
  *
- * function ContainerMonitor({ projectId, containerId }) {
- *   const { events, isConnected } = useContainerProgress(projectId, containerId);
+ * function ContainerMonitor({ projectId, sandboxId }) {
+ *   const { events, isConnected } = useContainerProgress(projectId, sandboxId);
  *
  *   return (
  *     <div>
  *       {events.map((event, i) => (
- *         <div key={i}>{event.type}: {event.containerId}</div>
+ *         <div key={i}>{event.type}: {event.sandboxId}</div>
  *       ))}
  *     </div>
  *   );
@@ -228,11 +228,11 @@ export function useWorkflowProgress(
  */
 export function useContainerProgress(
   projectId: string,
-  containerId?: string,
-  callback?: (event: ContainerEvent) => void
+  sandboxId?: string,
+  callback?: (event: SandboxEvent) => void
 ) {
   const { client } = useAInTandem();
-  const [events, setEvents] = useState<ContainerEvent[]>([]);
+  const [events, setEvents] = useState<SandboxEvent[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
@@ -241,7 +241,7 @@ export function useContainerProgress(
 
     const subscribe = async () => {
       try {
-        const unsubscribe = await client.subscribeToContainer(
+        const unsubscribe = await client.subscribeToSandbox(
           projectId,
           (event) => {
             if (!mounted) return;
@@ -249,7 +249,7 @@ export function useContainerProgress(
             setEvents((prev) => [...prev, event]);
             callback?.(event);
           },
-          containerId
+          sandboxId
         );
 
         if (mounted) {
@@ -267,7 +267,7 @@ export function useContainerProgress(
       mounted = false;
       unsubscribeRef.current?.();
     };
-  }, [client, projectId, containerId, callback]);
+  }, [client, projectId, sandboxId, callback]);
 
   const clearEvents = useCallback(() => {
     setEvents([]);
@@ -321,11 +321,11 @@ export function useProgress(
       try {
         const progress = client.getProgress();
 
-        if (!progress.isConnected()) {
-          await progress.connect();
+        if (!progress.isConnected(projectId)) {
+          await progress.connect(projectId);
         }
 
-        const subscription = await progress.subscribeToProgress((event) => {
+        const subscription = await progress.subscribeToProgress(projectId, (event: any) => {
           if (!mounted) return;
 
           // Filter by project

@@ -23,7 +23,7 @@ export { AInTandemClient, AuthService } from './client/AInTandemClient.js';
 // Services
 export { WorkflowService } from './services/WorkflowService.js';
 export { TaskService } from './services/TaskService.js';
-export { ContainerService } from './services/ContainerService.js';
+export { SandboxService } from './services/SandboxService.js';
 export { ContextService } from './services/ContextService.js';
 export { SettingsService } from './services/SettingsService.js';
 export { WorkspaceService } from './services/WorkspaceService.js';

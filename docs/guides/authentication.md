@@ -1,18 +1,18 @@
-# 認證指南
+# Authentication Guide
 
-本指南詳細說明如何使用 AInTandem SDK 處理用戶認證，包括登入、登出、Token 管理和自動刷新。
+This guide explains how to handle user authentication with the AInTandem SDK, including login, logout, token management, and automatic refresh.
 
-## 概述
+## Overview
 
-AInTandem SDK 使用 JWT (JSON Web Token) 進行認證：
+The AInTandem SDK uses JWT (JSON Web Token) for authentication:
 
-- **Access Token**: 用於 API 請求認證，有效期較短
-- **Refresh Token**: 用於獲取新的 access token，有效期較長
-- **自動刷新**: SDK 自動處理 token 過期和刷新
+- **Access Token**: Used for API request authentication, with a shorter validity period
+- **Refresh Token**: Used to obtain new access tokens, with a longer validity period
+- **Automatic Refresh**: The SDK automatically handles token expiration and refresh
 
-## 核心 SDK 認證
+## Core SDK Authentication
 
-### 1. 登入
+### 1. Login
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -21,7 +21,7 @@ const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
 
-// 基礎登入
+// Basic login
 const response = await client.auth.login({
   username: 'user@example.com',
   password: 'your-password',
@@ -32,115 +32,115 @@ console.log('Refresh Token:', response.refreshToken);
 console.log('User Info:', response.user);
 ```
 
-### 2. 檢查認證狀態
+### 2. Check Authentication Status
 
 ```typescript
-// 檢查是否已認證
+// Check if authenticated
 if (client.auth.isAuthenticated()) {
-  console.log('用戶已登入');
+  console.log('User is logged in');
 
-  // 獲取當前用戶信息
+  // Get current user info
   const user = client.auth.getUser();
-  console.log('當前用戶:', user);
+  console.log('Current user:', user);
 } else {
-  console.log('用戶未登入');
+  console.log('User is not logged in');
 }
 ```
 
-### 3. Token 驗證
+### 3. Token Verification
 
 ```typescript
-// 驗證當前 token 是否有效
+// Verify if current token is valid
 try {
   const isValid = await client.auth.verify();
   if (isValid) {
-    console.log('Token 有效');
+    console.log('Token is valid');
   } else {
-    console.log('Token 無效或已過期');
+    console.log('Token is invalid or expired');
   }
 } catch (error) {
-  console.error('驗證失敗:', error);
+  console.error('Verification failed:', error);
 }
 ```
 
-### 4. 手動刷新 Token
+### 4. Manual Token Refresh
 
 ```typescript
-// 手動刷新 access token
+// Manually refresh access token
 try {
   await client.auth.refresh();
-  console.log('Token 已刷新');
+  console.log('Token refreshed');
 
   const newAccessToken = client.auth.getAccessToken();
   console.log('New Access Token:', newAccessToken);
 } catch (error) {
-  console.error('刷新失敗:', error);
-  // 可能需要重新登入
+  console.error('Refresh failed:', error);
+  // May need to re-login
 }
 ```
 
-### 5. 登出
+### 5. Logout
 
 ```typescript
-// 登出並清除本地存儲的 token
+// Logout and clear locally stored tokens
 client.auth.logout();
-console.log('已登出');
+console.log('Logged out');
 
-// 驗證已登出
-console.log('是否已認證:', client.auth.isAuthenticated()); // false
+// Verify logged out
+console.log('Is authenticated:', client.auth.isAuthenticated()); // false
 ```
 
-### 6. 獲取 Token
+### 6. Get Tokens
 
 ```typescript
-// 獲取當前 access token
+// Get current access token
 const accessToken = client.auth.getAccessToken();
 console.log('Access Token:', accessToken);
 
-// 獲取當前 refresh token
+// Get current refresh token
 const refreshToken = client.auth.getRefreshToken();
 console.log('Refresh Token:', refreshToken);
 ```
 
-### 7. 設置 Token（用於恢復會話）
+### 7. Set Tokens (for Session Restoration)
 
 ```typescript
-// 從 localStorage 恢復會話
+// Restore session from localStorage
 const savedTokens = localStorage.getItem('auth_tokens');
 if (savedTokens) {
   const { accessToken, refreshToken } = JSON.parse(savedTokens);
 
   client.auth.setTokens(accessToken, refreshToken);
 
-  // 驗證 token 是否仍然有效
+  // Verify token is still valid
   const isValid = await client.auth.verify();
   if (isValid) {
-    console.log('會話已恢復');
+    console.log('Session restored');
   } else {
-    console.log('會話已過期，需要重新登入');
+    console.log('Session expired, please login again');
   }
 }
 ```
 
-## 自動 Token 刷新
+## Automatic Token Refresh
 
-SDK 會自動處理 token 過期情況：
+The SDK automatically handles token expiration:
 
 ```typescript
-// 當 API 返回 401 (Unauthorized) 時，SDK 會自動嘗試刷新 token
+// When API returns 401 (Unauthorized), SDK automatically tries to refresh token
 try {
-  // 如果 access token 過期，SDK 會自動刷新並重試請求
+  // If access token expires, SDK will automatically refresh and retry request
   const workflows = await client.workflows.listWorkflows('published');
-  console.log('工作流列表:', workflows);
+  console.log('Workflow list:', workflows);
 } catch (error) {
-  // 如果刷新失敗（例如 refresh token 也過期了），才會拋出錯誤
-  console.error('請求失敗:', error);
+  // Only throws error if refresh fails (e.g., refresh token also expired)
+  console.error('Request failed:', error);
 }
 ```
 
-## React 認證整合
+## React Authentication Integration
 
-### 1. 使用 AInTandemProvider
+### 1. Using AInTandemProvider
 
 ```tsx
 import { AInTandemProvider } from '@aintandem/sdk-react';
@@ -150,13 +150,13 @@ function App() {
     <AInTandemProvider
       config={{ baseURL: 'https://api.aintandem.com' }}
       onAuthSuccess={(user) => {
-        console.log('登入成功:', user);
-        // 可以保存用戶信息到 localStorage
+        console.log('Login successful:', user);
+        // Can save user info to localStorage
         localStorage.setItem('user', JSON.stringify(user));
       }}
       onAuthError={(error) => {
-        console.error('認證失敗:', error);
-        // 顯示錯誤訊息
+        console.error('Authentication failed:', error);
+        // Display error message
       }}
     >
       <YourApp />
@@ -165,7 +165,7 @@ function App() {
 }
 ```
 
-### 2. 使用 useAuth Hook
+### 2. Using useAuth Hook
 
 ```tsx
 import { useAuth } from '@aintandem/sdk-react';
@@ -182,33 +182,33 @@ function LoginForm() {
         username: formData.get('username') as string,
         password: formData.get('password') as string,
       });
-      // 登入成功後，isAuthenticated 會自動更新為 true
-      console.log('登入成功，用戶:', user);
+      // After successful login, isAuthenticated will automatically update to true
+      console.log('Login successful, user:', user);
     } catch (err) {
-      // error 會自動設置
-      console.error('登入失敗:', error);
+      // error will be automatically set
+      console.error('Login failed:', error);
     }
   };
 
   const handleLogout = () => {
     logout();
-    // 登出後，isAuthenticated 會自動更新為 false
+    // After logout, isAuthenticated will automatically update to false
   };
 
   return (
     <div>
       {isAuthenticated ? (
         <div>
-          <p>歡迎, {user?.username}!</p>
-          <button onClick={handleLogout}>登出</button>
+          <p>Welcome, {user?.username}!</p>
+          <button onClick={handleLogout}>Logout</button>
         </div>
       ) : (
         <form onSubmit={handleLogin}>
-          <input name="username" placeholder="用戶名" required />
-          <input name="password" type="password" placeholder="密碼" required />
+          <input name="username" placeholder="Username" required />
+          <input name="password" type="password" placeholder="Password" required />
           {error && <div className="error">{error.message}</div>}
           <button type="submit" disabled={isLoading}>
-            {isLoading ? '登入中...' : '登入'}
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       )}
@@ -217,7 +217,7 @@ function LoginForm() {
 }
 ```
 
-### 3. 使用 useUser Hook（快捷方式）
+### 3. Using useUser Hook (Shortcut)
 
 ```tsx
 import { useUser } from '@aintandem/sdk-react';
@@ -226,21 +226,21 @@ function UserProfile() {
   const user = useUser();
 
   if (!user) {
-    return <div>未登入</div>;
+    return <div>Not logged in</div>;
   }
 
   return (
     <div>
-      <h1>用戶資料</h1>
-      <p>用戶名: {user.username}</p>
+      <h1>User Profile</h1>
+      <p>Username: {user.username}</p>
       <p>Email: {user.email}</p>
-      <p>角色: {user.role}</p>
+      <p>Role: {user.role}</p>
     </div>
   );
 }
 ```
 
-### 4. 使用 useAInTandem Hook（完整控制）
+### 4. Using useAInTandem Hook (Full Control)
 
 ```tsx
 import { useAInTandem } from '@aintandem/sdk-react';
@@ -251,30 +251,30 @@ function AdvancedAuth() {
   const handleRefresh = async () => {
     try {
       await refresh();
-      console.log('Token 已刷新');
+      console.log('Token refreshed');
     } catch (err) {
-      console.error('刷新失敗:', err);
+      console.error('Refresh failed:', err);
     }
   };
 
   return (
     <div>
-      <p>認證狀態: {isAuthenticated ? '已登入' : '未登入'}</p>
-      <p>用戶: {user?.username || 'N/A'}</p>
+      <p>Authentication status: {isAuthenticated ? 'Logged in' : 'Not logged in'}</p>
+      <p>User: {user?.username || 'N/A'}</p>
       <button onClick={() => login({ username: 'user', password: 'pass' })}>
-        登入
+        Login
       </button>
-      <button onClick={logout}>登出</button>
-      <button onClick={handleRefresh}>刷新 Token</button>
-      {error && <div>錯誤: {error.message}</div>}
+      <button onClick={logout}>Logout</button>
+      <button onClick={handleRefresh}>Refresh Token</button>
+      {error && <div>Error: {error.message}</div>}
     </div>
   );
 }
 ```
 
-## 保存和恢復會話
+## Saving and Restoring Sessions
 
-### 核心 SDK
+### Core SDK
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -283,36 +283,36 @@ const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
 
-// 登入後保存 token
+// Save tokens after login
 const response = await client.auth.login({
   username: 'user',
   password: 'pass',
 });
 
-// 保存到 localStorage
+// Save to localStorage
 localStorage.setItem('auth_tokens', JSON.stringify({
   accessToken: response.accessToken,
   refreshToken: response.refreshToken,
   user: response.user,
 }));
 
-// 應用重啟時恢復會話
+// Restore session on app restart
 const savedTokens = localStorage.getItem('auth_tokens');
 if (savedTokens) {
   const { accessToken, refreshToken } = JSON.parse(savedTokens);
   client.auth.setTokens(accessToken, refreshToken);
 
-  // 驗證 token
+  // Verify token
   const isValid = await client.auth.verify();
   if (!isValid) {
-    // Token 過期，清除本地存儲
+    // Token expired, clear local storage
     localStorage.removeItem('auth_tokens');
-    // 重新登入
+    // Re-login
   }
 }
 ```
 
-### React 應用
+### React Application
 
 ```tsx
 import { useEffect } from 'react';
@@ -325,9 +325,9 @@ function App() {
   };
 
   const handleAuthSuccess = (user: any) => {
-    // Provider 會自動保存 token 到 localStorage
-    // 您可以在這裡執行額外的操作
-    console.log('登入成功:', user);
+    // Provider automatically saves token to localStorage
+    // You can perform additional operations here
+    console.log('Login successful:', user);
   };
 
   return (
@@ -340,13 +340,13 @@ function App() {
   );
 }
 
-// Provider 會自動從 localStorage 恢復會話
-// 無需手動處理
+// Provider automatically restores session from localStorage
+// No manual handling needed
 ```
 
-## 錯誤處理
+## Error Handling
 
-### 處理認證錯誤
+### Handling Authentication Errors
 
 ```typescript
 import { AInTandemError } from '@aintandem/sdk-core';
@@ -360,22 +360,22 @@ try {
   if (error instanceof AInTandemError) {
     switch (error.code) {
       case 'INVALID_CREDENTIALS':
-        console.error('用戶名或密碼錯誤');
+        console.error('Invalid username or password');
         break;
       case 'USER_NOT_FOUND':
-        console.error('用戶不存在');
+        console.error('User does not exist');
         break;
       case 'AUTHENTICATION_FAILED':
-        console.error('認證失敗');
+        console.error('Authentication failed');
         break;
       default:
-        console.error('未知錯誤:', error.message);
+        console.error('Unknown error:', error.message);
     }
   }
 }
 ```
 
-### React 錯誤處理
+### React Error Handling
 
 ```tsx
 import { useAuth } from '@aintandem/sdk-react';
@@ -387,7 +387,7 @@ function LoginForm() {
     try {
       await login({ username: 'user', password: 'pass' });
     } catch (err) {
-      // error 會自動更新到 state
+      // error will be automatically updated to state
       console.error('Login failed:', error);
     }
   };
@@ -396,77 +396,77 @@ function LoginForm() {
     <div>
       {error && (
         <div className="error-message">
-          {error.code === 'INVALID_CREDENTIALS' && '用戶名或密碼錯誤'}
-          {error.code === 'USER_NOT_FOUND' && '用戶不存在'}
-          {error.code === 'AUTHENTICATION_FAILED' && '認證失敗，請稍後再試'}
+          {error.code === 'INVALID_CREDENTIALS' && 'Invalid username or password'}
+          {error.code === 'USER_NOT_FOUND' && 'User does not exist'}
+          {error.code === 'AUTHENTICATION_FAILED' && 'Authentication failed, please try again later'}
         </div>
       )}
-      <button onClick={handleLogin}>登入</button>
+      <button onClick={handleLogin}>Login</button>
     </div>
   );
 }
 ```
 
-## 安全性最佳實踐
+## Security Best Practices
 
-### 1. 不要在客戶端硬編碼密碼
+### 1. Don't Hardcode Passwords in Client
 
 ```typescript
-// ❌ 錯誤做法
+// ❌ Wrong approach
 const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
-  password: 'hardcoded-password', // 不要這樣做
+  password: 'hardcoded-password', // Don't do this
 });
 
-// ✅ 正確做法
+// ✅ Correct approach
 const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
-// 讓用戶通過 UI 輸入密碼
+// Let users enter password through UI
 ```
 
-### 2. 使用 HTTPS
+### 2. Use HTTPS
 
 ```typescript
-// ✅ 生產環境必須使用 HTTPS
+// ✅ Production must use HTTPS
 const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com', // HTTPS
 });
 
-// ❌ 避免使用 HTTP（除錯環境除外）
+// ❌ Avoid using HTTP (except for debugging)
 const client = new AInTandemClient({
-  baseURL: 'http://api.aintandem.com', // 不安全
+  baseURL: 'http://api.aintandem.com', // Not secure
 });
 ```
 
-### 3. 保護 Token
+### 3. Protect Tokens
 
 ```typescript
-// Token 會自動存儲在 localStorage（由 AuthManager 處理）
-// 不要將 token 暴露在 URL 或日誌中
+// Tokens are automatically stored in localStorage (handled by AuthManager)
+// Don't expose tokens in URLs or logs
 
-// ❌ 錯誤做法
+// ❌ Wrong approach
 console.log('Access Token:', client.auth.getAccessToken());
 window.location.href = `https://example.com?token=${client.auth.getAccessToken()}`;
 
-// ✅ 正確做法
-// 只在必要時使用 token（SDK 會自動添加到請求頭）
+// ✅ Correct approach
+// Only use tokens when necessary (SDK will automatically add to request headers)
 ```
 
-### 4. 處理 Token 過期
+### 4. Handle Token Expiration
 
 ```typescript
-// SDK 會自動處理 token 刷新
-// 但您應該監聽認證失敗的情況
+// SDK automatically handles token refresh
+// But you should listen for authentication failures
 
 const { onAuthError } = useAInTandem();
 
-// 在 Provider 中設置
+// Set in Provider
 <AInTandemProvider
   config={{ baseURL: 'https://api.aintandem.com' }}
   onAuthError={(error) => {
-    // 當認證失敗時（例如 refresh token 也過期）
-    // 重定向到登入頁面
+    // When authentication fails (e.g., refresh token also expired)
+    // Redirect to login page
     window.location.href = '/login';
   }}
 >
@@ -474,9 +474,9 @@ const { onAuthError } = useAInTandem();
 </AInTandemProvider>
 ```
 
-## 完整範例
+## Complete Examples
 
-### 核心 SDK 認證流程
+### Core SDK Authentication Flow
 
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
@@ -491,20 +491,20 @@ class AuthService {
     this.restoreSession();
   }
 
-  // 登入
+  // Login
   async login(username: string, password: string) {
     const response = await this.client.auth.login({ username, password });
     this.saveSession(response);
     return response.user;
   }
 
-  // 登出
+  // Logout
   logout() {
     this.client.auth.logout();
     localStorage.removeItem('auth_tokens');
   }
 
-  // 保存會話
+  // Save session
   private saveSession(response: any) {
     localStorage.setItem('auth_tokens', JSON.stringify({
       accessToken: response.accessToken,
@@ -513,7 +513,7 @@ class AuthService {
     }));
   }
 
-  // 恢復會話
+  // Restore session
   private async restoreSession() {
     const saved = localStorage.getItem('auth_tokens');
     if (saved) {
@@ -527,36 +527,36 @@ class AuthService {
     }
   }
 
-  // 獲取客戶端
+  // Get client
   getClient() {
     return this.client;
   }
 }
 
-// 使用
+// Usage
 const authService = new AuthService();
 await authService.login('user', 'pass');
 const client = authService.getClient();
 ```
 
-### React 認證流程
+### React Authentication Flow
 
 ```tsx
 import { AInTandemProvider, useAuth } from '@aintandem/sdk-react';
 import { ErrorBoundary } from '@aintandem/sdk-react/components';
 
-// 1. 設置 Provider
+// 1. Set up Provider
 function App() {
   return (
     <ErrorBoundary>
       <AInTandemProvider
         config={{ baseURL: 'https://api.aintandem.com' }}
         onAuthSuccess={(user) => {
-          console.log('登入成功:', user);
+          console.log('Login successful:', user);
         }}
         onAuthError={(error) => {
-          console.error('認證失敗:', error);
-          // 可以在這裡重定向到登入頁面
+          console.error('Authentication failed:', error);
+          // Can redirect to login page here
         }}
       >
         <MainApp />
@@ -565,12 +565,12 @@ function App() {
   );
 }
 
-// 2. 受保護的路由組件
+// 2. Protected route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>載入中...</div>;
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
@@ -580,7 +580,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// 3. 登入頁面
+// 3. Login page
 function LoginPage() {
   const { login, isLoading, error } = useAuth();
 
@@ -593,31 +593,31 @@ function LoginPage() {
         password: formData.get('password') as string,
       });
     } catch (err) {
-      // Error 已經被 useAuth hook 處理
+      // Error already handled by useAuth hook
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name="username" placeholder="用戶名" required />
-      <input name="password" type="password" placeholder="密碼" required />
+      <input name="username" placeholder="Username" required />
+      <input name="password" type="password" placeholder="Password" required />
       {error && <div className="error">{error.message}</div>}
       <button type="submit" disabled={isLoading}>
-        {isLoading ? '登入中...' : '登入'}
+        {isLoading ? 'Logging in...' : 'Login'}
       </button>
     </form>
   );
 }
 
-// 4. 主應用
+// 4. Main app
 function MainApp() {
   const { user, logout } = useAuth();
 
   return (
     <div>
       <header>
-        <h1>歡迎, {user?.username}!</h1>
-        <button onClick={logout}>登出</button>
+        <h1>Welcome, {user?.username}!</h1>
+        <button onClick={logout}>Logout</button>
       </header>
       <main>
         <ProtectedRoute>
@@ -629,30 +629,30 @@ function MainApp() {
 }
 ```
 
-## 下一步
+## Next Steps
 
-- [工作流管理](./workflows.md) - 了解如何管理工作流
-- [任務執行](./tasks.md) - 了解如何執行任務
-- [實時進度追蹤](./real-time-progress.md) - 了解如何追蹤任務進度
+- [Workflow Management](./workflows.md) - Learn how to manage workflows
+- [Task Execution](./tasks.md) - Learn how to execute tasks
+- [Real-time Progress Tracking](./real-time-progress.md) - Learn how to track task progress
 
-## 常見問題
+## FAQ
 
-### Q: Token 保存在哪裡？
+### Q: Where are tokens saved?
 
-Token 默認保存在 `localStorage` 中，由 `AuthManager` 自動管理。
+Tokens are saved in `localStorage` by default, automatically managed by `AuthManager`.
 
-### Q: 如何自定義 Token 存儲？
+### Q: How to customize token storage?
 
-您可以繼承 `AuthManager` 類並覆蓋 `loadTokens` 和 `saveTokens` 方法。
+You can extend the `AuthManager` class and override the `loadTokens` and `saveTokens` methods.
 
-### Q: Token 什麼時候會過期？
+### Q: When do tokens expire?
 
-Access token 的有效期由服務器配置決定。SDK 會自動刷新過期的 token。
+Access token validity is determined by server configuration. The SDK will automatically refresh expired tokens.
 
-### Q: 如何處理並發請求時的 token 刷新？
+### Q: How to handle token refresh during concurrent requests?
 
-SDK 內部使用鎖機制，確保只有一個請求會觸發 token 刷新，其他請求會等待刷新完成。
+The SDK uses a locking mechanism internally to ensure only one request triggers token refresh, while other requests wait for refresh to complete.
 
 ---
 
-**祝您使用愉快！** 🔐
+**Happy coding!** 🔐

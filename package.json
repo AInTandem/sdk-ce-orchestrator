@@ -1,6 +1,6 @@
 {
   "name": "@aintandem/sdk-monorepo",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "description": "TypeScript SDK for AInTandem CE Orchestrator",
   "scripts": {
@@ -24,7 +24,10 @@
     "release": "pnpm build && changeset publish",
     "docs:generate": "typedoc",
     "clean": "pnpm -r clean && rm -rf node_modules",
-    "hooks:install": "sh scripts/setup-hooks.sh"
+    "hooks:install": "sh scripts/setup-hooks.sh",
+    "deps:workspace": "tsx scripts/set-deps-mode.ts workspace && pnpm install",
+    "deps:npm": "tsx scripts/set-deps-mode.ts npm && pnpm install",
+    "dev:setup": "tsx scripts/set-deps-mode.ts workspace && pnpm install && pnpm hooks:install"
   },
   "keywords": [
     "typescript",

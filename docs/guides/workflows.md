@@ -157,7 +157,7 @@ console.log('Execution status:', execution.status);
 
 ```typescript
 // Get execution details
-const execution = await client.workflows.getWorkflowExecution('execution-id');
+const execution = await client.workflows.getExecution('execution-id');
 
 console.log('Execution status:', execution.status);
 console.log('Current phase:', execution.currentPhase);
@@ -169,7 +169,7 @@ console.log('Total steps:', execution.totalSteps);
 
 ```typescript
 // Get all execution records for specific workflow
-const executions = await client.workflows.listWorkflowExecutions('workflow-id');
+const executions = await client.workflows.listExecutions('workflow-id');
 
 console.log('Execution history:', executions);
 
@@ -190,19 +190,19 @@ console.log('Execution statistics:', stats);
 const executionId = 'execution-id';
 
 // Start execution
-const started = await client.workflows.startWorkflowExecution(executionId);
+const started = await client.workflows.startExecution(executionId);
 console.log('Started:', started.status);
 
 // Pause execution
-const paused = await client.workflows.pauseWorkflowExecution(executionId);
+const paused = await client.workflows.pauseExecution(executionId);
 console.log('Paused:', paused.status);
 
 // Resume execution
-const resumed = await client.workflows.resumeWorkflowExecution(executionId);
+const resumed = await client.workflows.resumeExecution(executionId);
 console.log('Resumed:', resumed.status);
 
 // Cancel execution
-const cancelled = await client.workflows.cancelWorkflowExecution(executionId);
+const cancelled = await client.workflows.cancelExecution(executionId);
 console.log('Cancelled:', cancelled.status);
 ```
 
@@ -228,9 +228,9 @@ versions.forEach(version => {
 
 ```typescript
 // Get specific version details
-const version = await client.workflows.getWorkflowVersion('workflow-id', 2);
+const version = await client.workflows.getVersion('version-id');
 
-console.log('Version 2 definition:', version.definition);
+console.log('Version definition:', version.definition);
 ```
 
 ## React Hooks Usage
@@ -565,7 +565,7 @@ class WorkflowManager {
   // Execute workflow and monitor
   async executeWorkflow(workflowId: string, projectId: string, input: any) {
     // 1. Create execution
-    const execution = await this.client.workflows.createWorkflowExecution(workflowId, {
+    const execution = await this.client.workflows.createExecution(workflowId, {
       projectId,
       input,
     });
@@ -573,7 +573,7 @@ class WorkflowManager {
     console.log('Execution ID:', execution.id);
 
     // 2. Start execution
-    await this.client.workflows.startWorkflowExecution(execution.id);
+    await this.client.workflows.startExecution(execution.id);
 
     // 3. Subscribe to progress
     await this.client.subscribeToWorkflow(
@@ -596,7 +596,7 @@ class WorkflowManager {
 
   // Get workflow statistics
   async getWorkflowStats(workflowId: string) {
-    const executions = await this.client.workflows.listWorkflowExecutions(workflowId);
+    const executions = await this.client.workflows.listExecutions(workflowId);
 
     return {
       total: executions.length,

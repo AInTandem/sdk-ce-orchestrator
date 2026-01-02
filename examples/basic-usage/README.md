@@ -131,15 +131,16 @@ const workflow = await client.workflows.getWorkflow('workflow-id');
 
 ```typescript
 // Async task
-const task = await client.tasks.executeTask({
-  projectId: 'project-123',
-  task: 'data-analysis',
-  input: { dataset: 'sales-2024' },
-  async: true,
-});
+const task = await client.tasks.executeTask(
+  'project-123',
+  {
+    task: 'data-analysis',
+    input: { dataset: 'sales-2024' },
+  }
+);
 
-// Query task
-const details = await client.tasks.getTask('project-123', task.id);
+// Query task status
+const details = await client.tasks.getTaskStatus('project-123', task.id);
 ```
 
 ### 5. Real-time Progress Tracking

@@ -8,6 +8,16 @@ NC='\033[0m'
 
 printf "🚀 Running pre-push checks...\n"
 
+# 0. Check for workspace dependencies in react package
+printf "${YELLOW}▶ Checking npm dependencies...${NC}\n"
+if grep -q "workspace:\*" packages/react/package.json; then
+    printf "\n"
+    printf "${RED}❌ workspace:* found in packages/react/package.json!${NC}\n"
+    printf "${YELLOW}Please use version ranges (e.g., ^0.5.1) instead of workspace:*${NC}\n"
+    exit 1
+fi
+printf "${GREEN}✓ Npm dependencies check passed${NC}\n"
+
 # 1. TypeScript type check
 printf "${YELLOW}▶ TypeScript type check...${NC}\n"
 if ! pnpm typecheck; then

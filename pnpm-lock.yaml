@@ -116,8 +116,8 @@ importers:
   packages/react:
     dependencies:
       '@aintandem/sdk-core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^0.5.1
+        version: 0.5.1
       react:
         specifier: ^18.0.0
         version: 18.3.1
@@ -157,6 +157,10 @@ importers:
         version: 1.6.1(@types/node@20.19.27)(jsdom@24.1.3)
 
 packages:
+
+  '@aintandem/sdk-core@0.5.1':
+    resolution: {integrity: sha512-DrFELz/fxL7ORbzrtkSTQWSQGrCM4SiwPeY0l1vHRGlfRlzyiCMsvGwIgsD90QUkxC4OGSZpSj8qgDLeuYE2Jw==}
+    engines: {node: '>=18.0.0'}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -3023,6 +3027,8 @@ packages:
     engines: {node: '>=18'}
 
 snapshots:
+
+  '@aintandem/sdk-core@0.5.1': {}
 
   '@ampproject/remapping@2.3.0':
     dependencies:

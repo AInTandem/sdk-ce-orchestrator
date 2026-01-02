@@ -117,15 +117,16 @@ export function useTaskProgress(
  *
  * Subscribes to workflow execution progress.
  *
- * @param workflowId - Workflow ID
+ * @param projectId - Project ID
+ * @param workflowId - Workflow ID (optional)
  * @param executionId - Execution ID (optional)
  *
  * @example
  * ```tsx
  * import { useWorkflowProgress } from '@aintandem/sdk-react';
  *
- * function WorkflowMonitor({ workflowId, executionId }) {
- *   const { events, isConnected } = useWorkflowProgress(workflowId, executionId);
+ * function WorkflowMonitor({ projectId, workflowId, executionId }) {
+ *   const { events, isConnected } = useWorkflowProgress(projectId, workflowId, executionId);
  *
  *   return (
  *     <div>
@@ -138,7 +139,8 @@ export function useTaskProgress(
  * ```
  */
 export function useWorkflowProgress(
-  workflowId: string,
+  projectId: string,
+  workflowId?: string,
   executionId?: string,
   callbacks?: {
     onEvent?: (event: WorkflowEvent) => void;
@@ -157,7 +159,7 @@ export function useWorkflowProgress(
     const subscribe = async () => {
       try {
         const unsubscribe = await client.subscribeToWorkflow(
-          workflowId,
+          projectId,
           (event) => {
             if (!mounted) return;
 
@@ -170,6 +172,7 @@ export function useWorkflowProgress(
               callbacks?.onFailed?.(event);
             }
           },
+          workflowId,
           executionId
         );
 
@@ -188,7 +191,7 @@ export function useWorkflowProgress(
       mounted = false;
       unsubscribeRef.current?.();
     };
-  }, [client, workflowId, executionId]);
+  }, [client, projectId, workflowId, executionId]);
 
   const clearEvents = useCallback(() => {
     setEvents([]);

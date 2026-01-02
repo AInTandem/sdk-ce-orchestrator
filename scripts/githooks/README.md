@@ -15,6 +15,7 @@ If any check fails, the commit will be aborted.
 ### `pre-push`
 Runs before each push to ensure code quality and passing tests:
 
+- **NPM Dependencies Check** - Verifies that react package uses version ranges (not `workspace:*`)
 - **TypeScript Type Check** - Validates TypeScript types
 - **ESLint** - Checks code style
 - **Build** - Verifies that all packages build successfully

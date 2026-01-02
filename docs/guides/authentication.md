@@ -38,10 +38,6 @@ console.log('User Info:', response.user);
 // Check if authenticated
 if (client.auth.isAuthenticated()) {
   console.log('User is logged in');
-
-  // Get current user info
-  const user = client.auth.getUser();
-  console.log('Current user:', user);
 } else {
   console.log('User is not logged in');
 }
@@ -71,8 +67,8 @@ try {
   await client.auth.refresh();
   console.log('Token refreshed');
 
-  const newAccessToken = client.auth.getAccessToken();
-  console.log('New Access Token:', newAccessToken);
+  const newToken = client.auth.getToken();
+  console.log('New Token:', newToken);
 } catch (error) {
   console.error('Refresh failed:', error);
   // May need to re-login
@@ -94,30 +90,31 @@ console.log('Is authenticated:', client.auth.isAuthenticated()); // false
 
 ```typescript
 // Get current access token
-const accessToken = client.auth.getAccessToken();
-console.log('Access Token:', accessToken);
-
-// Get current refresh token
-const refreshToken = client.auth.getRefreshToken();
-console.log('Refresh Token:', refreshToken);
+const token = client.auth.getToken();
+console.log('Token:', token);
 ```
 
-### 7. Set Tokens (for Session Restoration)
+### 7. Token Persistence
+
+Tokens are automatically persisted to localStorage by the SDK. On app restart, the SDK will automatically restore the session from localStorage.
 
 ```typescript
-// Restore session from localStorage
-const savedTokens = localStorage.getItem('auth_tokens');
-if (savedTokens) {
-  const { accessToken, refreshToken } = JSON.parse(savedTokens);
+// The SDK automatically loads tokens from localStorage on initialization
+const client = new AInTandemClient({
+  baseURL: 'https://api.aintandem.com',
+});
 
-  client.auth.setTokens(accessToken, refreshToken);
+// Check if session was restored
+if (client.auth.isAuthenticated()) {
+  console.log('Session restored from localStorage');
 
   // Verify token is still valid
   const isValid = await client.auth.verify();
   if (isValid) {
-    console.log('Session restored');
+    console.log('Session is valid');
   } else {
     console.log('Session expired, please login again');
+    client.auth.logout();
   }
 }
 ```
@@ -276,6 +273,8 @@ function AdvancedAuth() {
 
 ### Core SDK
 
+The SDK automatically handles token persistence using localStorage. Tokens are saved after login and automatically restored on client initialization.
+
 ```typescript
 import { AInTandemClient } from '@aintandem/sdk-core';
 
@@ -283,31 +282,23 @@ const client = new AInTandemClient({
   baseURL: 'https://api.aintandem.com',
 });
 
-// Save tokens after login
+// Login - tokens are automatically saved to localStorage
 const response = await client.auth.login({
   username: 'user',
   password: 'pass',
 });
 
-// Save to localStorage
-localStorage.setItem('auth_tokens', JSON.stringify({
-  accessToken: response.accessToken,
-  refreshToken: response.refreshToken,
-  user: response.user,
-}));
+console.log('Login successful:', response.user);
+console.log('Token:', response.token);
 
-// Restore session on app restart
-const savedTokens = localStorage.getItem('auth_tokens');
-if (savedTokens) {
-  const { accessToken, refreshToken } = JSON.parse(savedTokens);
-  client.auth.setTokens(accessToken, refreshToken);
-
-  // Verify token
+// On app restart, the SDK automatically restores the session
+// Check if session is valid
+if (client.auth.isAuthenticated()) {
   const isValid = await client.auth.verify();
-  if (!isValid) {
-    // Token expired, clear local storage
-    localStorage.removeItem('auth_tokens');
-    // Re-login
+  if (isValid) {
+    console.log('Session restored and valid');
+  } else {
+    console.log('Session expired, please login again');
   }
 }
 ```

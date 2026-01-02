@@ -4,12 +4,12 @@
  * Wrapper around Fetch API with retry logic, interceptors, and error handling.
  */
 
-import type { RequestInterceptor, ResponseInterceptor } from '../types/manual/client.types.js';
-import { AInTandemError } from '../errors/AInTandemError.js';
-import { NetworkError } from '../errors/NetworkError.js';
-import { AuthError } from '../errors/AuthError.js';
-import { ApiError } from '../errors/ApiError.js';
-import { ErrorCode, type ApiErrorResponse } from './types.js';
+import type { RequestInterceptor, ResponseInterceptor } from '../types/manual/client.types';
+import { AInTandemError } from '../errors/AInTandemError';
+import { NetworkError } from '../errors/NetworkError';
+import { AuthError } from '../errors/AuthError';
+import { ApiError } from '../errors/ApiError';
+import { ErrorCode, type ApiErrorResponse } from './types';
 
 /**
  * HTTP Client configuration
@@ -49,7 +49,7 @@ const DEFAULT_CONFIG = {
  *   retryCount: 3,
  * });
  *
- * const data = await client.request('/api/workflows');
+ * const data = await client.request('/workflows');
  * ```
  */
 export class HttpClient {
@@ -200,7 +200,8 @@ export class HttpClient {
 
     for (let attempt = 0; attempt <= this.config.retryCount; attempt++) {
       try {
-        const response = await fetch(request);
+        // Clone the request for each attempt since Request objects are one-time use
+        const response = await fetch(request.clone());
 
         // Don't retry on 4xx errors (client errors)
         if (response.status >= 400 && response.status < 500) {

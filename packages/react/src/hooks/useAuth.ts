@@ -4,8 +4,8 @@
  * React hooks for authentication.
  */
 
-import { useAInTandem } from '../providers/AInTandemProvider.js';
-import type { LoginRequest } from '@aintandem/sdk-core';
+import { useAInTandem } from '../providers/AInTandemProvider';
+// import type { LoginRequest } from '@aintandem/sdk-core';
 
 /**
  * Use Auth Hook

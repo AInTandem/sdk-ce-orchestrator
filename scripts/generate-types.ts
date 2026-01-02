@@ -61,8 +61,6 @@ function getSpecSource(): SpecSource {
     join(__dirname, '../../../orchestrator/dist/swagger.json'),
     // orchestrator-sdk structure (from orchestrator-sdk/)
     join(process.cwd(), '../orchestrator/dist/swagger.json'),
-    // Alternative path from default/ directory
-    join(__dirname, '../../../../default/orchestrator/dist/swagger.json'),
   ];
 
   for (const path of possiblePaths) {

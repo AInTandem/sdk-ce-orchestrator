@@ -51,7 +51,7 @@ src/lib/api/
 ```typescript
 // settings.ts (original)
 export const getSettings = async (): Promise<SettingsData> => {
-  return apiCall<SettingsData>('/api/settings', { method: 'GET' });
+  return apiCall<SettingsData>('/settings', { method: 'GET' });
 };
 ```
 

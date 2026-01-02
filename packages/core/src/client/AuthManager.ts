@@ -4,10 +4,10 @@
  * Handles token storage, authentication state, and automatic token refresh.
  */
 
-import type { TokenStorage } from '../types/manual/client.types.js';
-import type { LoginRequest, LoginResponse, RefreshResponse } from '../types/generated/index.js';
-import { HttpClient } from './HttpClient.js';
-import { AuthError } from '../errors/AuthError.js';
+import type { TokenStorage } from '../types/manual/client.types';
+import type { LoginRequest, LoginResponse, RefreshResponse } from '../types/index';
+import { HttpClient } from './HttpClient';
+import { AuthError } from '../errors/AuthError';
 
 /**
  * Auth Manager Configuration
@@ -87,17 +87,21 @@ export class AuthManager {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
       const response = await this.httpClient.post<LoginResponse>(
-        '/api/auth/login',
+        '/auth/login',
         credentials
       );
 
       this.token = response.token ?? null;
-      // Note: LoginResponse doesn't include refreshToken in current API
-      this.refreshToken = null;
+      this.refreshToken = (response as any).refreshToken ?? null;
 
       // Store tokens
       if (this.token) {
         this.storage.setToken(this.token);
+      }
+      if (this.refreshToken) {
+        if (this.storage.setRefreshToken) {
+          this.storage.setRefreshToken(this.refreshToken);
+        }
       }
 
       // Setup auto-refresh
@@ -124,6 +128,9 @@ export class AuthManager {
 
     // Clear storage
     this.storage.removeToken();
+    if (this.storage.removeRefreshToken) {
+      this.storage.removeRefreshToken();
+    }
 
     // Clear auto-refresh timer
     if (this.refreshTimer) {
@@ -145,22 +152,31 @@ export class AuthManager {
 
     try {
       const response = await this.httpClient.post<RefreshResponse>(
-        '/api/auth/refresh',
+        '/auth/refresh',
         { refreshToken: this.refreshToken }
       );
 
-      this.token = response.token;
-      // Note: RefreshResponse doesn't include refreshToken in current API
-      // this.refreshToken remains unchanged
+      if (response.success && response.token) {
+        this.token = response.token;
+        // Update refresh token if API returns a new one (token rotation)
+        if (response.refreshToken) {
+          this.refreshToken = response.refreshToken;
+          if (this.storage.setRefreshToken && this.refreshToken) {
+            this.storage.setRefreshToken(this.refreshToken);
+          }
+        }
 
-      // Store new token
-      if (this.token) {
-        this.storage.setToken(this.token);
-      }
+        // Store new token
+        if (this.token) {
+          this.storage.setToken(this.token);
+        }
 
-      // Setup auto-refresh again
-      if (this.autoRefresh) {
-        this.setupAutoRefresh();
+        // Setup auto-refresh again
+        if (this.autoRefresh) {
+          this.setupAutoRefresh();
+        }
+      } else {
+        throw new AuthError(response.error || 'Token refresh failed', 401);
       }
 
       return response;
@@ -186,10 +202,10 @@ export class AuthManager {
     }
 
     try {
-      const response = await this.httpClient.post<{ valid: boolean }>('/api/auth/verify', {
+      const response = await this.httpClient.post<{ success: boolean; user?: any }>('/auth/verify', {
         token: this.token,
       });
-      return response.valid;
+      return response.success === true;
     } catch {
       return false;
     }
@@ -228,8 +244,9 @@ export class AuthManager {
    */
   private loadTokens(): void {
     this.token = this.storage.getToken();
-    // Note: refresh token is typically stored separately or in a more secure way
-    // For now, we'll assume it's managed by the login/refresh flow
+    if (this.storage.getRefreshToken) {
+      this.refreshToken = this.storage.getRefreshToken();
+    }
   }
 
   /**

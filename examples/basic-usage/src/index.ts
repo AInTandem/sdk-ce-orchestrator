@@ -180,7 +180,7 @@ async function exampleExecuteAdhocTask() {
       },
     };
 
-    const task = await client.tasks.executeAdhocTask(request);
+    const task = await client.tasks.executeAdhocTask(CONFIG.projectId, request);
 
     console.log('✅ Ad-hoc task submitted successfully!');
     console.log('Task ID:', task.taskId);

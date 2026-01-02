@@ -87,7 +87,8 @@ export function AInTandemProvider({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (client.auth.isAuthenticated()) {
+        const isLocalAuth = client.auth.isAuthenticated();
+        if (isLocalAuth) {
           setIsAuthenticated(true);
           // Try to verify token
           const isValid = await client.auth.verify();

@@ -12,8 +12,8 @@ import type {
   CreateProjectRequest,
   UpdateProjectRequest,
   MoveProjectRequest,
-} from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+} from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Workspace Service
@@ -52,7 +52,7 @@ export class WorkspaceService {
    * @returns Array of organizations
    */
   async listOrganizations(): Promise<Organization[]> {
-    return this.httpClient.get<Organization[]>('/api/organizations');
+    return this.httpClient.get<Organization[]>('/organizations');
   }
 
   /**
@@ -63,7 +63,7 @@ export class WorkspaceService {
    */
   async getOrganization(organizationId: string): Promise<Organization> {
     return this.httpClient.get<Organization>(
-      `/api/organizations/${organizationId}`
+      `/organizations/${organizationId}`
     );
   }
 
@@ -74,7 +74,7 @@ export class WorkspaceService {
    * @returns Created organization
    */
   async createOrganization(request: CreateOrganizationRequest): Promise<Organization> {
-    return this.httpClient.post<Organization>('/api/organizations', request);
+    return this.httpClient.post<Organization>('/organizations', request);
   }
 
   /**
@@ -89,7 +89,7 @@ export class WorkspaceService {
     request: UpdateOrganizationRequest
   ): Promise<Organization> {
     return this.httpClient.patch<Organization>(
-      `/api/organizations/${organizationId}`,
+      `/organizations/${organizationId}`,
       request
     );
   }
@@ -100,7 +100,7 @@ export class WorkspaceService {
    * @param organizationId - Organization ID
    */
   async deleteOrganization(organizationId: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/organizations/${organizationId}`);
+    return this.httpClient.delete<void>(`/organizations/${organizationId}`);
   }
 
   // ========================================================================
@@ -115,7 +115,7 @@ export class WorkspaceService {
    */
   async listWorkspaces(organizationId: string): Promise<Workspace[]> {
     return this.httpClient.get<Workspace[]>(
-      `/api/organizations/${organizationId}/workspaces`
+      `/organizations/${organizationId}/workspaces`
     );
   }
 
@@ -126,7 +126,7 @@ export class WorkspaceService {
    * @returns Workspace details
    */
   async getWorkspace(workspaceId: string): Promise<Workspace> {
-    return this.httpClient.get<Workspace>(`/api/workspaces/${workspaceId}`);
+    return this.httpClient.get<Workspace>(`/workspaces/${workspaceId}`);
   }
 
   /**
@@ -141,7 +141,7 @@ export class WorkspaceService {
     request: CreateWorkspaceRequest
   ): Promise<Workspace> {
     return this.httpClient.post<Workspace>(
-      `/api/organizations/${organizationId}/workspaces`,
+      `/organizations/${organizationId}/workspaces`,
       request
     );
   }
@@ -158,7 +158,7 @@ export class WorkspaceService {
     request: UpdateWorkspaceRequest
   ): Promise<Workspace> {
     return this.httpClient.patch<Workspace>(
-      `/api/workspaces/${workspaceId}`,
+      `/workspaces/${workspaceId}`,
       request
     );
   }
@@ -169,7 +169,7 @@ export class WorkspaceService {
    * @param workspaceId - Workspace ID
    */
   async deleteWorkspace(workspaceId: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/workspaces/${workspaceId}`);
+    return this.httpClient.delete<void>(`/workspaces/${workspaceId}`);
   }
 
   // ========================================================================
@@ -183,7 +183,7 @@ export class WorkspaceService {
    * @returns Array of projects
    */
   async listProjects(workspaceId: string): Promise<Project[]> {
-    return this.httpClient.get<Project[]>(`/api/workspaces/${workspaceId}/projects`);
+    return this.httpClient.get<Project[]>(`/workspaces/${workspaceId}/projects`);
   }
 
   /**
@@ -193,7 +193,7 @@ export class WorkspaceService {
    * @returns Project details
    */
   async getProject(projectId: string): Promise<Project> {
-    return this.httpClient.get<Project>(`/api/projects/${projectId}`);
+    return this.httpClient.get<Project>(`/projects/${projectId}`);
   }
 
   /**
@@ -208,7 +208,7 @@ export class WorkspaceService {
     request: CreateProjectRequest
   ): Promise<Project> {
     return this.httpClient.post<Project>(
-      `/api/workspaces/${workspaceId}/projects`,
+      `/workspaces/${workspaceId}/projects`,
       request
     );
   }
@@ -224,7 +224,7 @@ export class WorkspaceService {
     projectId: string,
     request: UpdateProjectRequest
   ): Promise<Project> {
-    return this.httpClient.patch<Project>(`/api/projects/${projectId}`, request);
+    return this.httpClient.patch<Project>(`/projects/${projectId}`, request);
   }
 
   /**
@@ -235,8 +235,8 @@ export class WorkspaceService {
    */
   async deleteProject(projectId: string, deleteFolder?: boolean): Promise<void> {
     const url = deleteFolder !== undefined
-      ? `/api/projects/${projectId}?deleteFolder=${String(deleteFolder)}`
-      : `/api/projects/${projectId}`;
+      ? `/projects/${projectId}?deleteFolder=${String(deleteFolder)}`
+      : `/projects/${projectId}`;
     return this.httpClient.delete<void>(url);
   }
 
@@ -252,7 +252,7 @@ export class WorkspaceService {
     request: MoveProjectRequest
   ): Promise<Project> {
     return this.httpClient.post<Project>(
-      `/api/projects/${projectId}/move`,
+      `/projects/${projectId}/move`,
       request
     );
   }
@@ -269,7 +269,7 @@ export class WorkspaceService {
    */
   async getHierarchy(organizationId: string): Promise<OrganizationHierarchy> {
     return this.httpClient.get<OrganizationHierarchy>(
-      `/api/organizations/${organizationId}/hierarchy`
+      `/organizations/${organizationId}/hierarchy`
     );
   }
 
@@ -280,7 +280,7 @@ export class WorkspaceService {
    * @returns Project path
    */
   async getProjectPath(projectId: string): Promise<ProjectPath> {
-    return this.httpClient.get<ProjectPath>(`/api/projects/${projectId}/path`);
+    return this.httpClient.get<ProjectPath>(`/projects/${projectId}/path`);
   }
 }
 

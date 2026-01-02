@@ -28,7 +28,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.NOT_FOUND,
         statusCode: 404,
         timestamp: '2025-12-29T00:00:00.000Z',
-        path: '/api/workflows/non-existent',
+        path: '/workflows/non-existent',
       };
 
       // Mock fetch to return error response
@@ -55,7 +55,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.VALIDATION_ERROR,
         statusCode: 400,
         timestamp: new Date().toISOString(),
-        path: '/api/workflows',
+        path: '/workflows',
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -80,7 +80,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.UNAUTHORIZED,
         statusCode: 401,
         timestamp: new Date().toISOString(),
-        path: '/api/settings',
+        path: '/settings',
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -105,7 +105,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.FORBIDDEN,
         statusCode: 403,
         timestamp: new Date().toISOString(),
-        path: '/api/admin',
+        path: '/admin',
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -130,7 +130,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.WORKFLOW_NOT_FOUND,
         statusCode: 404,
         timestamp: new Date().toISOString(),
-        path: '/api/workflows/xyz',
+        path: '/workflows/xyz',
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -155,7 +155,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.CONFLICT,
         statusCode: 409,
         timestamp: new Date().toISOString(),
-        path: '/api/workflows',
+        path: '/workflows',
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -184,7 +184,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.INTERNAL_ERROR,
         statusCode: 500,
         timestamp: new Date().toISOString(),
-        path: '/api/workflows',
+        path: '/workflows',
         details: { originalError: 'Database connection failed' },
       };
 
@@ -296,7 +296,7 @@ describe('SDK API Error Handling', () => {
         code: ErrorCode.VALIDATION_ERROR,
         statusCode: 400,
         timestamp: new Date().toISOString(),
-        path: '/api/workflows',
+        path: '/workflows',
         details: {
           fields: ['name', 'description'],
           reasons: ['Field is required', 'Field is too short'],

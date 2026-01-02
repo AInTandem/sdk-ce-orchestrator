@@ -195,7 +195,7 @@ export default defineConfig({
 import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  http.post('/api/auth/login', async ({ request }) => {
+  http.post('/auth/login', async ({ request }) => {
     return HttpResponse.json({
       token: 'mock-token',
       user: { id: '1', username: 'test' },

@@ -71,6 +71,9 @@ export interface TokenStorage {
   getToken(): string | null;
   setToken(token: string): void;
   removeToken(): void;
+  getRefreshToken?(): string | null;
+  setRefreshToken?(token: string): void;
+  removeRefreshToken?(): void;
 }
 
 /**
@@ -97,24 +100,44 @@ export interface WebSocketConfig {
  * Default token storage using localStorage
  */
 export class LocalStorageTokenStorage implements TokenStorage {
-  private readonly key = 'aintandem_token';
+  private readonly tokenKey = 'aintandem_token';
+  private readonly refreshTokenKey = 'aintandem_refresh_token';
 
   getToken(): string | null {
     if (typeof window === 'undefined' || !window.localStorage) {
       return null;
     }
-    return window.localStorage.getItem(this.key);
+    return window.localStorage.getItem(this.tokenKey);
   }
 
   setToken(token: string): void {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(this.key, token);
+      window.localStorage.setItem(this.tokenKey, token);
     }
   }
 
   removeToken(): void {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(this.key);
+      window.localStorage.removeItem(this.tokenKey);
+    }
+  }
+
+  getRefreshToken(): string | null {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    return window.localStorage.getItem(this.refreshTokenKey);
+  }
+
+  setRefreshToken(token: string): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(this.refreshTokenKey, token);
+    }
+  }
+
+  removeRefreshToken(): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(this.refreshTokenKey);
     }
   }
 }

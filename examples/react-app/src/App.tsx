@@ -127,7 +127,7 @@ function App() {
         prompt: 'Complete this task from the React app',
         taskType: 'claude',
       };
-      const task = await client.tasks.executeAdhocTask(request);
+      const task = await client.tasks.executeAdhocTask(CONFIG.projectId, request);
       setTasks([...tasks, task]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to execute task');

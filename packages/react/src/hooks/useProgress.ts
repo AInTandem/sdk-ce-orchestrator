@@ -10,7 +10,7 @@ import {
   useCallback,
   useRef,
 } from 'react';
-import { useAInTandem } from '../providers/AInTandemProvider.js';
+import { useAInTandem } from '../providers/AInTandemProvider';
 import type {
   TaskEvent,
   WorkflowEvent,

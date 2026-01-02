@@ -668,10 +668,10 @@ function ProjectMonitor({ projectId }) {
 **解決**:
 ```typescript
 // Before
-import { useTaskProgress } from '../hooks/useTask.js';
+import { useTaskProgress } from '../hooks/useTask';
 
 // After
-import { useTaskProgress } from '../hooks/useProgress.js';
+import { useTaskProgress } from '../hooks/useProgress';
 ```
 
 ### 3. Workflow 類型導出問題
@@ -686,7 +686,7 @@ export type {
   WorkflowStep,
   WorkflowTransition,
   WorkflowVersion,
-} from './services/WorkflowService.js';
+} from './services/WorkflowService';
 ```
 
 ### 4. ProgressSubscription 類型問題

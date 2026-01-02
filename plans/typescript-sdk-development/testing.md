@@ -292,7 +292,7 @@ describe('WorkflowService', () => {
       const result = await service.listWorkflows();
 
       expect(result).toEqual(mockWorkflows);
-      expect(mockHttpClient.request).toHaveBeenCalledWith('/api/workflows');
+      expect(mockHttpClient.request).toHaveBeenCalledWith('/workflows');
     });
 
     it('should filter by status', async () => {
@@ -300,7 +300,7 @@ describe('WorkflowService', () => {
 
       await service.listWorkflows('published');
 
-      expect(mockHttpClient.request).toHaveBeenCalledWith('/api/workflows?status=published');
+      expect(mockHttpClient.request).toHaveBeenCalledWith('/workflows?status=published');
     });
   });
 
@@ -316,7 +316,7 @@ describe('WorkflowService', () => {
       });
 
       expect(result).toEqual(newWorkflow);
-      expect(mockHttpClient.request).toHaveBeenCalledWith('/api/workflows', {
+      expect(mockHttpClient.request).toHaveBeenCalledWith('/workflows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: expect.stringContaining('New Workflow'),
@@ -330,7 +330,7 @@ describe('WorkflowService', () => {
 
       await service.deleteWorkflow('1');
 
-      expect(mockHttpClient.request).toHaveBeenCalledWith('/api/workflows/1', {
+      expect(mockHttpClient.request).toHaveBeenCalledWith('/workflows/1', {
         method: 'DELETE',
       });
     });
@@ -521,7 +521,7 @@ import { http, HttpResponse } from 'msw';
 
 export const handlers = [
   // Auth
-  http.post('/api/auth/login', async ({ request }) => {
+  http.post('/auth/login', async ({ request }) => {
     const body = await request.json();
     if (body.username === 'test' && body.password === 'password') {
       return HttpResponse.json({
@@ -534,14 +534,14 @@ export const handlers = [
   }),
 
   // Workflows
-  http.get('/api/workflows', () => {
+  http.get('/workflows', () => {
     return HttpResponse.json([
       { id: '1', name: 'Workflow 1', status: 'published' },
       { id: '2', name: 'Workflow 2', status: 'draft' },
     ]);
   }),
 
-  http.get('/api/workflows/:id', ({ params }) => {
+  http.get('/workflows/:id', ({ params }) => {
     if (params.id === '1') {
       return HttpResponse.json({
         id: '1',
@@ -746,7 +746,7 @@ beforeEach(() => {
 ```typescript
 // ❌ 測試實現細節
 it('should call httpClient.request with specific parameters', () => {
-  expect(mockClient.request).toHaveBeenCalledWith('/api/workflows/1', {
+  expect(mockClient.request).toHaveBeenCalledWith('/workflows/1', {
     method: 'GET',
   });
 });

@@ -54,8 +54,8 @@ interface ErrorBoundaryProps {
 // packages/react/src/components/index.ts
 export {
   ErrorBoundary,
-} from './ErrorBoundary.js';
-export type { ErrorBoundaryProps, ErrorBoundaryState } from './ErrorBoundary.js';
+} from './ErrorBoundary';
+export type { ErrorBoundaryProps, ErrorBoundaryState } from './ErrorBoundary';
 ```
 
 ## Phase 8 完成項目

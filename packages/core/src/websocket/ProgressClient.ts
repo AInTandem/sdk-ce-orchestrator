@@ -4,7 +4,7 @@
  * High-level API for subscribing to progress updates.
  */
 
-import { WebSocketManager } from './WebSocketManager.js';
+import { WebSocketManager } from './WebSocketManager';
 import type {
   ProgressEventListener,
   TaskEventListener,
@@ -15,8 +15,8 @@ import type {
   WorkflowExecutionCompletedEvent,
   WorkflowExecutionFailedEvent,
   EventListener,
-} from './events.js';
-import { isTaskEvent, isWorkflowEvent, isSandboxEvent } from './events.js';
+} from './events';
+import { isTaskEvent, isWorkflowEvent, isSandboxEvent } from './events';
 
 export interface ProgressClientConfig {
   /** WebSocket base URL (e.g., 'ws://localhost:9900/api/progress/subscribe') */
@@ -75,7 +75,7 @@ export interface SandboxProgressOptions {
  * High-level API for subscribing to progress updates via WebSocket.
  *
  * The Orchestrator API requires a WebSocket URL format of:
- * `/api/progress/subscribe/{projectId}?token={jwt}`
+ * `/progress/subscribe/{projectId}?token={jwt}`
  *
  * @example
  * ```typescript

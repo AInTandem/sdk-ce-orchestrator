@@ -1,4 +1,4 @@
-import { AInTandemError } from './AInTandemError.js';
+import { AInTandemError } from './AInTandemError';
 
 /**
  * API request errors (4xx, 5xx)

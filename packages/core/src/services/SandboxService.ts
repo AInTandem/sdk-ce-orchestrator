@@ -12,8 +12,8 @@ import type {
   CancelOperationResponse,
   SandboxOperationType,
   OperationStatus,
-} from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+} from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Sandbox Service
@@ -52,7 +52,7 @@ export class SandboxService {
    * @returns Array of sandboxes
    */
   async listSandboxes(): Promise<SandboxInfoResponse[]> {
-    return this.httpClient.get<SandboxInfoResponse[]>('/api/flexy');
+    return this.httpClient.get<SandboxInfoResponse[]>('/flexy');
   }
 
   /**
@@ -62,7 +62,7 @@ export class SandboxService {
    * @returns Sandbox details
    */
   async getSandbox(sandboxId: string): Promise<SandboxInfoResponse> {
-    return this.httpClient.get<SandboxInfoResponse>(`/api/flexy/${sandboxId}`);
+    return this.httpClient.get<SandboxInfoResponse>(`/flexy/${sandboxId}`);
   }
 
   /**
@@ -75,7 +75,7 @@ export class SandboxService {
     request: CreateSandboxRequest
   ): Promise<SandboxCreationResponse> {
     return this.httpClient.post<SandboxCreationResponse>(
-      '/api/flexy',
+      '/flexy',
       request
     );
   }
@@ -86,7 +86,7 @@ export class SandboxService {
    * @param sandboxId - Sandbox ID
    */
   async deleteSandbox(sandboxId: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/flexy/${sandboxId}`);
+    return this.httpClient.delete<void>(`/flexy/${sandboxId}`);
   }
 
   // ========================================================================
@@ -99,7 +99,7 @@ export class SandboxService {
    * @param sandboxId - Sandbox ID
    */
   async startSandbox(sandboxId: string): Promise<void> {
-    return this.httpClient.post<void>(`/api/flexy/${sandboxId}/start`, {});
+    return this.httpClient.post<void>(`/flexy/${sandboxId}/start`, {});
   }
 
   /**
@@ -108,7 +108,7 @@ export class SandboxService {
    * @param sandboxId - Sandbox ID
    */
   async stopSandbox(sandboxId: string): Promise<void> {
-    return this.httpClient.post<void>(`/api/flexy/${sandboxId}/stop`, {});
+    return this.httpClient.post<void>(`/flexy/${sandboxId}/stop`, {});
   }
 
   /**
@@ -117,7 +117,7 @@ export class SandboxService {
    * @param sandboxId - Sandbox ID
    */
   async restartSandbox(sandboxId: string): Promise<void> {
-    return this.httpClient.post<void>(`/api/flexy/${sandboxId}/restart`, {});
+    return this.httpClient.post<void>(`/flexy/${sandboxId}/restart`, {});
   }
 
   // ========================================================================
@@ -132,7 +132,7 @@ export class SandboxService {
    */
   async startSandboxAsync(sandboxId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/flexy/${sandboxId}/start-async`,
+      `/flexy/${sandboxId}/start-async`,
       {}
     );
   }
@@ -145,7 +145,7 @@ export class SandboxService {
    */
   async stopSandboxAsync(sandboxId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/flexy/${sandboxId}/stop-async`,
+      `/flexy/${sandboxId}/stop-async`,
       {}
     );
   }
@@ -158,7 +158,7 @@ export class SandboxService {
    */
   async restartSandboxAsync(sandboxId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/flexy/${sandboxId}/restart-async`,
+      `/flexy/${sandboxId}/restart-async`,
       {}
     );
   }
@@ -171,7 +171,7 @@ export class SandboxService {
    */
   async deleteSandboxAsync(sandboxId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.delete<AsyncOperationResponse>(
-      `/api/flexy/${sandboxId}/async`
+      `/flexy/${sandboxId}/async`
     );
   }
 
@@ -215,7 +215,7 @@ export class SandboxService {
     }>;
     metadata?: Record<string, unknown>;
   }> {
-    return this.httpClient.get(`/api/flexy/operations/${operationId}`);
+    return this.httpClient.get(`/flexy/operations/${operationId}`);
   }
 
   /**
@@ -226,7 +226,7 @@ export class SandboxService {
    */
   async cancelOperation(operationId: string): Promise<CancelOperationResponse> {
     return this.httpClient.post<CancelOperationResponse>(
-      `/api/flexy/operations/${operationId}/cancel`,
+      `/flexy/operations/${operationId}/cancel`,
       {}
     );
   }
@@ -274,8 +274,8 @@ export class SandboxService {
     }>;
   }> {
     const url = status
-      ? `/api/flexy/projects/${projectId}/operations?status=${status.join('&status=')}`
-      : `/api/flexy/projects/${projectId}/operations`;
+      ? `/flexy/projects/${projectId}/operations?status=${status.join('&status=')}`
+      : `/flexy/projects/${projectId}/operations`;
     return this.httpClient.get(url);
   }
 

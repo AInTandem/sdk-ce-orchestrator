@@ -1,8 +1,8 @@
 {
   "name": "@aintandem/sdk-react",
-  "version": "0.0.1",
+  "version": "0.5.1",
   "type": "module",
-  "description": "React integration for AInTandem TypeScript SDK",
+  "description": "React integration for AInTandem CE Orchestrator TypeScript SDK",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,8 +36,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vitest"
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "react": "^18.0.0",

@@ -13,8 +13,8 @@ import type {
   WorkflowStepExecutionResponse,
   WorkflowStatus,
   WorkflowDefinition,
-} from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+} from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Workflow Service
@@ -51,7 +51,7 @@ export class WorkflowService {
    */
   async listWorkflows(status?: WorkflowStatus): Promise<Workflow[]> {
     const params = status ? `?status=${status}` : '';
-    return this.httpClient.get<Workflow[]>(`/api/workflows${params}`);
+    return this.httpClient.get<Workflow[]>(`/workflows${params}`);
   }
 
   /**
@@ -61,7 +61,7 @@ export class WorkflowService {
    * @returns Workflow details
    */
   async getWorkflow(id: string): Promise<Workflow> {
-    return this.httpClient.get<Workflow>(`/api/workflows/${id}`);
+    return this.httpClient.get<Workflow>(`/workflows/${id}`);
   }
 
   /**
@@ -71,7 +71,7 @@ export class WorkflowService {
    * @returns Created workflow
    */
   async createWorkflow(request: CreateWorkflowRequest): Promise<Workflow> {
-    return this.httpClient.post<Workflow>('/api/workflows', request);
+    return this.httpClient.post<Workflow>('/workflows', request);
   }
 
   /**
@@ -82,7 +82,7 @@ export class WorkflowService {
    * @returns Updated workflow
    */
   async updateWorkflow(id: string, request: UpdateWorkflowRequest): Promise<Workflow> {
-    return this.httpClient.put<Workflow>(`/api/workflows/${id}`, request);
+    return this.httpClient.put<Workflow>(`/workflows/${id}`, request);
   }
 
   /**
@@ -91,7 +91,7 @@ export class WorkflowService {
    * @param id - Workflow ID
    */
   async deleteWorkflow(id: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/workflows/${id}`);
+    return this.httpClient.delete<void>(`/workflows/${id}`);
   }
 
   /**
@@ -105,7 +105,7 @@ export class WorkflowService {
     id: string,
     status: WorkflowStatus
   ): Promise<Workflow> {
-    return this.httpClient.patch<Workflow>(`/api/workflows/${id}/status`, {
+    return this.httpClient.patch<Workflow>(`/workflows/${id}/status`, {
       status,
     });
   }
@@ -118,7 +118,7 @@ export class WorkflowService {
    * @returns Cloned workflow
    */
   async cloneWorkflow(id: string, request: CloneWorkflowRequest): Promise<Workflow> {
-    return this.httpClient.post<Workflow>(`/api/workflows/${id}/clone`, request);
+    return this.httpClient.post<Workflow>(`/workflows/${id}/clone`, request);
   }
 
   /**
@@ -128,7 +128,7 @@ export class WorkflowService {
    * @returns Array of workflow versions
    */
   async listVersions(id: string): Promise<WorkflowVersion[]> {
-    return this.httpClient.get<WorkflowVersion[]>(`/api/workflows/${id}/versions`);
+    return this.httpClient.get<WorkflowVersion[]>(`/workflows/${id}/versions`);
   }
 
   /**
@@ -139,7 +139,7 @@ export class WorkflowService {
    */
   async getVersion(versionId: string): Promise<WorkflowVersion> {
     return this.httpClient.get<WorkflowVersion>(
-      `/api/workflows/versions/${versionId}`
+      `/workflows/versions/${versionId}`
     );
   }
 
@@ -159,7 +159,7 @@ export class WorkflowService {
     request?: CreateWorkflowExecutionRequest
   ): Promise<WorkflowExecutionResponse> {
     return this.httpClient.post<WorkflowExecutionResponse>(
-      `/api/workflows/${workflowId}/executions`,
+      `/workflows/${workflowId}/executions`,
       request || {}
     );
   }
@@ -172,7 +172,7 @@ export class WorkflowService {
    */
   async startExecution(executionId: string): Promise<WorkflowExecutionResponse> {
     return this.httpClient.post<WorkflowExecutionResponse>(
-      `/api/workflows/executions/${executionId}/start`,
+      `/workflows/executions/${executionId}/start`,
       {}
     );
   }
@@ -185,7 +185,7 @@ export class WorkflowService {
    */
   async pauseExecution(executionId: string): Promise<WorkflowExecutionResponse> {
     return this.httpClient.post<WorkflowExecutionResponse>(
-      `/api/workflows/executions/${executionId}/pause`,
+      `/workflows/executions/${executionId}/pause`,
       {}
     );
   }
@@ -198,7 +198,7 @@ export class WorkflowService {
    */
   async resumeExecution(executionId: string): Promise<WorkflowExecutionResponse> {
     return this.httpClient.post<WorkflowExecutionResponse>(
-      `/api/workflows/executions/${executionId}/resume`,
+      `/workflows/executions/${executionId}/resume`,
       {}
     );
   }
@@ -211,7 +211,7 @@ export class WorkflowService {
    */
   async cancelExecution(executionId: string): Promise<WorkflowExecutionResponse> {
     return this.httpClient.post<WorkflowExecutionResponse>(
-      `/api/workflows/executions/${executionId}/cancel`,
+      `/workflows/executions/${executionId}/cancel`,
       {}
     );
   }
@@ -224,7 +224,7 @@ export class WorkflowService {
    */
   async getExecution(executionId: string): Promise<WorkflowExecutionResponse> {
     return this.httpClient.get<WorkflowExecutionResponse>(
-      `/api/workflows/executions/${executionId}`
+      `/workflows/executions/${executionId}`
     );
   }
 
@@ -236,7 +236,7 @@ export class WorkflowService {
    */
   async listExecutions(workflowId: string): Promise<WorkflowExecutionResponse[]> {
     return this.httpClient.get<WorkflowExecutionResponse[]>(
-      `/api/workflows/${workflowId}/executions`
+      `/workflows/${workflowId}/executions`
     );
   }
 
@@ -252,7 +252,7 @@ export class WorkflowService {
     stepId: string
   ): Promise<WorkflowStepExecutionResponse> {
     return this.httpClient.get<WorkflowStepExecutionResponse>(
-      `/api/workflows/executions/${executionId}/steps/${stepId}`
+      `/workflows/executions/${executionId}/steps/${stepId}`
     );
   }
 }
@@ -261,9 +261,8 @@ export class WorkflowService {
 // Re-export workflow types from generated schema
 // ============================================================================
 
-// Types are now imported from '../types/generated/index.js'
 // Export them here for convenience
-export type { WorkflowDefinition, WorkflowPhase, WorkflowStep, WorkflowTransition } from '../types/generated/index.js';
+export type { WorkflowDefinition, WorkflowPhase, WorkflowStep, WorkflowTransition } from '../types/index';
 
 // Custom Workflow type that extends the generated types with additional fields
 export interface Workflow {

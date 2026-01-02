@@ -319,14 +319,14 @@ it('should update state on login', async () => {
 import { http, HttpResponse } from 'msw';
 
 mockServer.use(
-  http.get('/api/endpoint', ({ request }) => {
+  http.get('/endpoint', ({ request }) => {
     // 處理請求
     return HttpResponse.json({
       data: 'mocked response',
     });
   }),
 
-  http.post('/api/endpoint', async ({ request }) => {
+  http.post('/endpoint', async ({ request }) => {
     const body = await request.json();
 
     if (body.valid) {

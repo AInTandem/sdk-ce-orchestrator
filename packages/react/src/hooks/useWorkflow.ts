@@ -9,7 +9,7 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import { useAInTandem } from '../providers/AInTandemProvider.js';
+import { useAInTandem } from '../providers/AInTandemProvider';
 import type {
   Workflow,
   UpdateWorkflowRequest,

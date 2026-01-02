@@ -8,7 +8,7 @@ export {
   useAuth,
   useUser,
   useLogin,
-} from './useAuth.js';
+} from './useAuth';
 
 export {
   useWorkflow,
@@ -16,7 +16,7 @@ export {
   useWorkflowVersions,
   useWorkflowExecution,
   useWorkflowExecutions,
-} from './useWorkflow.js';
+} from './useWorkflow';
 
 export {
   useTask,
@@ -24,11 +24,11 @@ export {
   useExecuteAdhocTask,
   useTaskHistory,
   useQueueStatus,
-} from './useTask.js';
+} from './useTask';
 
 export {
   useTaskProgress,
   useWorkflowProgress,
   useContainerProgress,
   useProgress,
-} from './useProgress.js';
+} from './useProgress';

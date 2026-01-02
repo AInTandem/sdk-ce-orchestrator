@@ -4,8 +4,8 @@
  * Manages user settings.
  */
 
-import type { UpdateSettingsRequest } from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+import type { UpdateSettingsRequest } from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Settings Service
@@ -38,7 +38,7 @@ export class SettingsService {
    * @returns User settings
    */
   async getSettings(): Promise<UserSettings> {
-    return this.httpClient.get<UserSettings>('/api/settings');
+    return this.httpClient.get<UserSettings>('/settings');
   }
 
   /**
@@ -48,7 +48,7 @@ export class SettingsService {
    * @returns Updated settings
    */
   async updateSettings(request: UpdateSettingsRequest): Promise<UserSettings> {
-    return this.httpClient.patch<UserSettings>('/api/settings', request);
+    return this.httpClient.patch<UserSettings>('/settings', request);
   }
 
   /**
@@ -57,7 +57,7 @@ export class SettingsService {
    * @returns Default settings
    */
   async resetSettings(): Promise<UserSettings> {
-    return this.httpClient.post<UserSettings>('/api/settings/reset', {});
+    return this.httpClient.post<UserSettings>('/settings/reset', {});
   }
 
   /**
@@ -89,7 +89,7 @@ export class SettingsService {
    * @returns Updated settings
    */
   async deleteSetting(key: string): Promise<UserSettings> {
-    return this.httpClient.delete<UserSettings>(`/api/settings/${key}`);
+    return this.httpClient.delete<UserSettings>(`/settings/${key}`);
   }
 }
 

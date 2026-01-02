@@ -7,16 +7,16 @@
 export {
   ProgressBar,
   CircularProgress,
-} from './ProgressBar.js';
-export type { ProgressBarProps, CircularProgressProps } from './ProgressBar.js';
+} from './ProgressBar';
+export type { ProgressBarProps, CircularProgressProps } from './ProgressBar';
 
 export {
   ProgressTracker,
   CompactProgressTracker,
-} from './ProgressTracker.js';
-export type { ProgressTrackerProps } from './ProgressTracker.js';
+} from './ProgressTracker';
+export type { ProgressTrackerProps } from './ProgressTracker';
 
 export {
   ErrorBoundary,
-} from './ErrorBoundary.js';
-export type { ErrorBoundaryProps, ErrorBoundaryState } from './ErrorBoundary.js';
+} from './ErrorBoundary';
+export type { ErrorBoundaryProps, ErrorBoundaryState } from './ErrorBoundary';

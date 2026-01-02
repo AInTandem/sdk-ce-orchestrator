@@ -18,15 +18,15 @@
  */
 
 // Main client
-export { AInTandemClient, AuthService } from './client/AInTandemClient.js';
+export { AInTandemClient, AuthService } from './client/AInTandemClient';
 
 // Services
-export { WorkflowService } from './services/WorkflowService.js';
-export { TaskService } from './services/TaskService.js';
-export { SandboxService } from './services/SandboxService.js';
-export { ContextService } from './services/ContextService.js';
-export { SettingsService } from './services/SettingsService.js';
-export { WorkspaceService } from './services/WorkspaceService.js';
+export { WorkflowService } from './services/WorkflowService';
+export { TaskService } from './services/TaskService';
+export { SandboxService } from './services/SandboxService';
+export { ContextService } from './services/ContextService';
+export { SettingsService } from './services/SettingsService';
+export { WorkspaceService } from './services/WorkspaceService';
 
 // Service types
 export type {
@@ -35,25 +35,25 @@ export type {
   WorkflowStep,
   WorkflowTransition,
   WorkflowVersion,
-} from './services/WorkflowService.js';
+} from './services/WorkflowService';
 
 // Core HTTP client and auth manager (for advanced usage)
-export { HttpClient } from './client/HttpClient.js';
-export { AuthManager } from './client/AuthManager.js';
+export { HttpClient } from './client/HttpClient';
+export { AuthManager } from './client/AuthManager';
 
 // Interceptors
-export { createAuthInterceptor } from './interceptors/auth.interceptor.js';
+export { createAuthInterceptor } from './interceptors/auth.interceptor';
 export {
   createLoggingInterceptor,
   createResponseLoggingInterceptor,
-} from './interceptors/logging.interceptor.js';
+} from './interceptors/logging.interceptor';
 
 // Error classes
-export { AInTandemError } from './errors/AInTandemError.js';
-export { NetworkError } from './errors/NetworkError.js';
-export { AuthError } from './errors/AuthError.js';
-export { ApiError } from './errors/ApiError.js';
-export { ValidationError } from './errors/ValidationError.js';
+export { AInTandemError } from './errors/AInTandemError';
+export { NetworkError } from './errors/NetworkError';
+export { AuthError } from './errors/AuthError';
+export { ApiError } from './errors/ApiError';
+export { ValidationError } from './errors/ValidationError';
 
 // Types
 export type {
@@ -62,12 +62,12 @@ export type {
   ResponseInterceptor,
   TokenStorage,
   WebSocketConfig,
-} from './types/manual/client.types.js';
+} from './types/manual/client.types';
 
-export { LocalStorageTokenStorage } from './types/manual/client.types.js';
+export { LocalStorageTokenStorage } from './types/manual/client.types';
 
 // Generated types from OpenAPI
-export * from './types/generated/index.js';
+export * from './types/index';
 
 // WebSocket functionality
-export * from './websocket/index.js';
+export * from './websocket/index';

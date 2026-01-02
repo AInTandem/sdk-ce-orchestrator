@@ -77,23 +77,23 @@ export default defineConfig({
 **Mock Endpoints**:
 ```typescript
 // Auth endpoints
-http.post('/api/auth/login', ...)
-http.post('/api/auth/refresh', ...)
+http.post('/auth/login', ...)
+http.post('/auth/refresh', ...)
 
 // Settings endpoints
-http.get('/api/settings', ...)
-http.put('/api/settings', ...)
+http.get('/settings', ...)
+http.put('/settings', ...)
 
 // Workflows endpoints
-http.get('/api/workflows', ...)
-http.get('/api/workflows/:id', ...)
+http.get('/workflows', ...)
+http.get('/workflows/:id', ...)
 
 // Tasks endpoints
-http.post('/api/tasks/execute', ...)
-http.get('/api/tasks/:taskId', ...)
+http.post('/tasks/execute', ...)
+http.get('/tasks/:taskId', ...)
 
 // Containers endpoints
-http.get('/api/containers', ...)
+http.get('/containers', ...)
 ```
 
 ### 3. SDK Core 整合測試

@@ -6,7 +6,7 @@ import { http, HttpResponse } from 'msw';
 
 export const handlers = [
   // Health check
-  http.get('/api/health', () => {
+  http.get('/health', () => {
     return HttpResponse.json({
       status: 'ok',
       uptime: 123.45,
@@ -14,7 +14,7 @@ export const handlers = [
   }),
 
   // Auth endpoints
-  http.post('/api/auth/login', async ({ request }) => {
+  http.post('/auth/login', async ({ request }) => {
     const body = await request.json();
     if (body.username === 'test' && body.password === 'password') {
       return HttpResponse.json({
@@ -32,11 +32,11 @@ export const handlers = [
     );
   }),
 
-  http.post('/api/auth/logout', () => {
+  http.post('/auth/logout', () => {
     return HttpResponse.json({ success: true });
   }),
 
-  http.post('/api/auth/refresh', () => {
+  http.post('/auth/refresh', () => {
     return HttpResponse.json({
       token: 'new-mock-token',
       refreshToken: 'new-mock-refresh-token',
@@ -44,7 +44,7 @@ export const handlers = [
   }),
 
   // Workflow endpoints
-  http.get('/api/workflows', () => {
+  http.get('/workflows', () => {
     return HttpResponse.json([
       {
         id: '1',
@@ -77,7 +77,7 @@ export const handlers = [
     ]);
   }),
 
-  http.get('/api/workflows/:id', ({ params }) => {
+  http.get('/workflows/:id', ({ params }) => {
     if (params.id === '1') {
       return HttpResponse.json({
         id: '1',
@@ -97,7 +97,7 @@ export const handlers = [
     return HttpResponse.json({ message: 'Workflow not found' }, { status: 404 });
   }),
 
-  http.post('/api/workflows', async ({ request }) => {
+  http.post('/workflows', async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
       id: '3',
@@ -111,14 +111,14 @@ export const handlers = [
   }),
 
   // Task endpoints
-  http.post('/api/projects/:projectId/tasks', () => {
+  http.post('/projects/:projectId/tasks', () => {
     return HttpResponse.json({
       taskId: 'task-1',
       message: 'Task queued successfully',
     });
   }),
 
-  http.post('/api/projects/:projectId/tasks/adhoc', () => {
+  http.post('/projects/:projectId/tasks/adhoc', () => {
     return HttpResponse.json({
       taskId: 'task-adhoc-1',
       message: 'Ad-hoc task queued successfully',
@@ -126,7 +126,7 @@ export const handlers = [
   }),
 
   // Container endpoints
-  http.get('/api/flexy', () => {
+  http.get('/flexy', () => {
     return HttpResponse.json([
       {
         id: 'container-1',

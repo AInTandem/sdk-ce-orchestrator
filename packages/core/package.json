@@ -1,6 +1,6 @@
 {
   "name": "@aintandem/sdk-core",
-  "version": "0.0.1",
+  "version": "0.5.1",
   "description": "Core TypeScript SDK for AInTandem CE Orchestrator API",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,12 +35,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aintandem/sdk"
+    "url": "https://github.com/AInTandem/sdk-ce-orchestrator"
   },
   "bugs": {
-    "url": "https://github.com/aintandem/sdk/issues"
+    "url": "https://github.com/AInTandem/sdk-ce-orchestrator/issues"
   },
-  "homepage": "https://github.com/aintandem/sdk#readme",
+  "homepage": "https://github.com/AInTandem/sdk-ce-orchestrator#readme",
   "devDependencies": {
     "@vitest/coverage-v8": "^1.2.0",
     "jsdom": "^24.0.0",

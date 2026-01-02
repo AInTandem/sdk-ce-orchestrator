@@ -11,8 +11,8 @@ import type {
   SearchMemoriesRequest,
   GetRelevantContextRequest,
   GetRelevantContextResponse,
-} from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+} from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Context Service
@@ -57,7 +57,7 @@ export class ContextService {
    * @returns Created memory
    */
   async createMemory(request: CreateMemoryRequest): Promise<Memory> {
-    return this.httpClient.post<Memory>('/api/context/memories', request);
+    return this.httpClient.post<Memory>('/context/memories', request);
   }
 
   /**
@@ -67,7 +67,7 @@ export class ContextService {
    * @returns Memory details
    */
   async getMemory(memoryId: string): Promise<Memory> {
-    return this.httpClient.get<Memory>(`/api/context/memories/${memoryId}`);
+    return this.httpClient.get<Memory>(`/context/memories/${memoryId}`);
   }
 
   /**
@@ -82,7 +82,7 @@ export class ContextService {
     request: UpdateMemoryRequest
   ): Promise<Memory> {
     return this.httpClient.patch<Memory>(
-      `/api/context/memories/${memoryId}`,
+      `/context/memories/${memoryId}`,
       request
     );
   }
@@ -94,7 +94,7 @@ export class ContextService {
    * @returns Created or updated memory
    */
   async upsertMemory(request: UpsertMemoryRequest): Promise<Memory> {
-    return this.httpClient.put<Memory>('/api/context/memories/upsert', request);
+    return this.httpClient.put<Memory>('/context/memories/upsert', request);
   }
 
   /**
@@ -103,7 +103,7 @@ export class ContextService {
    * @param memoryId - Memory ID
    */
   async deleteMemory(memoryId: string): Promise<void> {
-    return this.httpClient.delete<void>(`/api/context/memories/${memoryId}`);
+    return this.httpClient.delete<void>(`/context/memories/${memoryId}`);
   }
 
   // ========================================================================
@@ -126,7 +126,7 @@ export class ContextService {
 
     const queryString = params.toString();
     return this.httpClient.get<MemorySearchResult>(
-      `/api/context/memories/search${queryString ? `?${queryString}` : ''}`
+      `/context/memories/search${queryString ? `?${queryString}` : ''}`
     );
   }
 
@@ -148,7 +148,7 @@ export class ContextService {
 
     const queryString = params.toString();
     return this.httpClient.get<Memory[]>(
-      `/api/projects/${projectId}/memories${queryString ? `?${queryString}` : ''}`
+      `/projects/${projectId}/memories${queryString ? `?${queryString}` : ''}`
     );
   }
 
@@ -176,7 +176,7 @@ export class ContextService {
 
     const queryString = params.toString();
     return this.httpClient.get<GetRelevantContextResponse>(
-      `/api/context/relevant${queryString ? `?${queryString}` : ''}`
+      `/context/relevant${queryString ? `?${queryString}` : ''}`
     );
   }
 
@@ -189,7 +189,7 @@ export class ContextService {
    */
   async getTaskContext(projectId: string, taskId: string): Promise<TaskContext> {
     return this.httpClient.get<TaskContext>(
-      `/api/projects/${projectId}/tasks/${taskId}/context`
+      `/projects/${projectId}/tasks/${taskId}/context`
     );
   }
 
@@ -206,7 +206,7 @@ export class ContextService {
   async createMemoriesBatch(
     memories: CreateMemoryRequest[]
   ): Promise<Memory[]> {
-    return this.httpClient.post<Memory[]>('/api/context/memories/batch', {
+    return this.httpClient.post<Memory[]>('/context/memories/batch', {
       memories,
     });
   }
@@ -217,7 +217,7 @@ export class ContextService {
    * @param memoryIds - Array of memory IDs
    */
   async deleteMemoriesBatch(memoryIds: string[]): Promise<void> {
-    return this.httpClient.post<void>('/api/context/memories/batch-delete', {
+    return this.httpClient.post<void>('/context/memories/batch-delete', {
       memoryIds,
     });
   }
@@ -234,7 +234,7 @@ export class ContextService {
    */
   async getMemoryStats(projectId: string): Promise<MemoryStats> {
     return this.httpClient.get<MemoryStats>(
-      `/api/projects/${projectId}/memories/stats`
+      `/projects/${projectId}/memories/stats`
     );
   }
 }

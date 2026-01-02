@@ -18,8 +18,8 @@ import type {
   UpdateStepStatusRequest,
   AsyncOperationResponse,
   OperationStatus,
-} from '../types/generated/index.js';
-import { HttpClient } from '../client/HttpClient.js';
+} from '../types/index';
+import { HttpClient } from '../client/HttpClient';
 
 /**
  * Task Service
@@ -60,7 +60,7 @@ export class TaskService {
    * @returns Task response with ID and status
    */
   async executeTask(projectId: string, request: ExecuteTaskRequest): Promise<TaskResponse> {
-    return this.httpClient.post<TaskResponse>(`/api/projects/${projectId}/tasks`, request);
+    return this.httpClient.post<TaskResponse>(`/projects/${projectId}/tasks`, request);
   }
 
   /**
@@ -71,7 +71,7 @@ export class TaskService {
    * @returns Task response
    */
   async executeAdhocTask(projectId: string, request: ExecuteAdhocTaskRequest): Promise<TaskResponse> {
-    return this.httpClient.post<TaskResponse>(`/api/projects/${projectId}/tasks/adhoc`, request);
+    return this.httpClient.post<TaskResponse>(`/projects/${projectId}/tasks/adhoc`, request);
   }
 
   /**
@@ -82,7 +82,7 @@ export class TaskService {
    * @returns Task details
    */
   async getTaskStatus(projectId: string, taskId: string): Promise<TaskResponse> {
-    return this.httpClient.get<TaskResponse>(`/api/projects/${projectId}/tasks/${taskId}`);
+    return this.httpClient.get<TaskResponse>(`/projects/${projectId}/tasks/${taskId}`);
   }
 
   /**
@@ -97,7 +97,7 @@ export class TaskService {
     taskId: string
   ): Promise<TaskCancellationResponse> {
     return this.httpClient.post<TaskCancellationResponse>(
-      `/api/projects/${projectId}/tasks/${taskId}/cancel`,
+      `/projects/${projectId}/tasks/${taskId}/cancel`,
       {}
     );
   }
@@ -114,7 +114,7 @@ export class TaskService {
     taskId: string
   ): Promise<TaskContextResponse> {
     return this.httpClient.get<TaskContextResponse>(
-      `/api/projects/${projectId}/tasks/${taskId}/context`
+      `/projects/${projectId}/tasks/${taskId}/context`
     );
   }
 
@@ -142,7 +142,7 @@ export class TaskService {
 
     const queryString = params.toString();
     return this.httpClient.get<TaskResponse[]>(
-      `/api/projects/${projectId}/tasks${queryString ? `?${queryString}` : ''}`
+      `/projects/${projectId}/tasks${queryString ? `?${queryString}` : ''}`
     );
   }
 
@@ -154,7 +154,7 @@ export class TaskService {
    * @returns Task details
    */
   async getTask(projectId: string, taskId: string): Promise<TaskResponse> {
-    return this.httpClient.get<TaskResponse>(`/api/projects/${projectId}/tasks/${taskId}`);
+    return this.httpClient.get<TaskResponse>(`/projects/${projectId}/tasks/${taskId}`);
   }
 
   // ========================================================================
@@ -169,7 +169,7 @@ export class TaskService {
    */
   async getQueueStatus(projectId: string): Promise<TaskLimitResponse> {
     return this.httpClient.get<TaskLimitResponse>(
-      `/api/projects/${projectId}/task-queue-status`
+      `/projects/${projectId}/task-queue-status`
     );
   }
 
@@ -185,7 +185,7 @@ export class TaskService {
     request: SetTaskLimitRequest
   ): Promise<TaskLimitResponse> {
     return this.httpClient.post<TaskLimitResponse>(
-      `/api/projects/${projectId}/task-limits`,
+      `/projects/${projectId}/task-limits`,
       request
     );
   }
@@ -208,7 +208,7 @@ export class TaskService {
     request: SaveTaskOutputRequest
   ): Promise<SaveTaskOutputResponse> {
     return this.httpClient.post<SaveTaskOutputResponse>(
-      `/api/projects/${projectId}/tasks/${taskId}/context/save`,
+      `/projects/${projectId}/tasks/${taskId}/context/save`,
       request
     );
   }
@@ -221,7 +221,7 @@ export class TaskService {
    * @returns Task output
    */
   async getTaskOutput(projectId: string, taskId: string): Promise<unknown> {
-    return this.httpClient.get<unknown>(`/api/projects/${projectId}/tasks/${taskId}/output`);
+    return this.httpClient.get<unknown>(`/projects/${projectId}/tasks/${taskId}/output`);
   }
 
   // ========================================================================
@@ -242,7 +242,7 @@ export class TaskService {
     request: CaptureTaskDialogRequest
   ): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/projects/${projectId}/tasks/${taskId}/dialog`,
+      `/projects/${projectId}/tasks/${taskId}/dialog`,
       request
     );
   }
@@ -265,7 +265,7 @@ export class TaskService {
     request: UpdateStepStatusRequest
   ): Promise<TaskResponse> {
     return this.httpClient.patch<TaskResponse>(
-      `/api/projects/${projectId}/tasks/${taskId}/step`,
+      `/projects/${projectId}/tasks/${taskId}/step`,
       request
     );
   }
@@ -284,7 +284,7 @@ export class TaskService {
     stepId: string
   ): Promise<TaskStep> {
     return this.httpClient.get<TaskStep>(
-      `/api/projects/${projectId}/tasks/${taskId}/steps/${stepId}`
+      `/projects/${projectId}/tasks/${taskId}/steps/${stepId}`
     );
   }
 
@@ -306,7 +306,7 @@ export class TaskService {
     request?: { additionalInput?: string; parameters?: Record<string, unknown> }
   ): Promise<{ taskId: string; message: string; stepId: string }> {
     return this.httpClient.post<{ taskId: string; message: string; stepId: string }>(
-      `/api/projects/${projectId}/workflow/steps/${stepId}/execute`,
+      `/projects/${projectId}/workflow/steps/${stepId}/execute`,
       request || {}
     );
   }
@@ -333,7 +333,7 @@ export class TaskService {
     }
   ): Promise<{ memories: unknown[] }> {
     return this.httpClient.post<{ memories: unknown[] }>(
-      `/api/projects/${projectId}/tasks/context/relevant`,
+      `/projects/${projectId}/tasks/context/relevant`,
       request
     );
   }
@@ -350,7 +350,7 @@ export class TaskService {
    */
   async getAsyncOperation(operationId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.get<AsyncOperationResponse>(
-      `/api/flexy/operations/${operationId}`
+      `/flexy/operations/${operationId}`
     );
   }
 
@@ -362,7 +362,7 @@ export class TaskService {
    */
   async cancelAsyncOperation(operationId: string): Promise<AsyncOperationResponse> {
     return this.httpClient.post<AsyncOperationResponse>(
-      `/api/flexy/operations/${operationId}/cancel`,
+      `/flexy/operations/${operationId}/cancel`,
       {}
     );
   }

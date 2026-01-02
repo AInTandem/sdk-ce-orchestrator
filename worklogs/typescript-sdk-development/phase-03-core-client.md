@@ -100,10 +100,10 @@ const client = new HttpClient({
 });
 
 // GET 請求
-const data = await client.get('/api/workflows');
+const data = await client.get('/workflows');
 
 // POST 請求
-const result = await client.post('/api/workflows', {
+const result = await client.post('/workflows', {
   name: 'My Workflow',
   definition: { phases: [] },
 });
@@ -125,7 +125,7 @@ const result = await client.post('/api/workflows', {
 
 #### 認證方法
 - ✅ **login(credentials)**
-  - 調用 `/api/auth/login`
+  - 調用 `/auth/login`
   - 存儲 Access Token 和 Refresh Token
   - 設置自動刷新定時器
   - 返回用戶信息
@@ -137,13 +137,13 @@ const result = await client.post('/api/workflows', {
   - 取消自動刷新定時器
 
 - ✅ **refresh()**
-  - 調用 `/api/auth/refresh`
+  - 調用 `/auth/refresh`
   - 更新 Access Token
   - 重置自動刷新定時器
   - 刷新失敗則自動登出
 
 - ✅ **verify()**
-  - 調用 `/api/auth/verify`
+  - 調用 `/auth/verify`
   - 驗證 Token 有效性
   - 返回驗證結果
 

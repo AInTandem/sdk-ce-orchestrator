@@ -4,7 +4,7 @@
  * Logs HTTP requests and responses for debugging.
  */
 
-import type { RequestInterceptor, ResponseInterceptor } from '../types/manual/client.types.js';
+import type { RequestInterceptor, ResponseInterceptor } from '../types/manual/client.types';
 
 /**
  * Create a logging interceptor for requests

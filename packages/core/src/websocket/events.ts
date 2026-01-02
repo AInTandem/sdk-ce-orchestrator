@@ -4,7 +4,7 @@
  * Type definitions for WebSocket progress events.
  */
 
-import type { StepExecutionStatus } from '../types/generated/index.js';
+import type { StepExecutionStatus } from '../types/index';
 
 // ============================================================================
 // Base Event Types

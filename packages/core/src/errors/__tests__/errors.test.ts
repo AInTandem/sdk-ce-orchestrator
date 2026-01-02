@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { AInTandemError } from '../AInTandemError.js';
-import { NetworkError } from '../NetworkError.js';
-import { AuthError } from '../AuthError.js';
-import { ApiError } from '../ApiError.js';
-import { ValidationError } from '../ValidationError.js';
+import { AInTandemError } from '../AInTandemError';
+import { NetworkError } from '../NetworkError';
+import { AuthError } from '../AuthError';
+import { ApiError } from '../ApiError';
+import { ValidationError } from '../ValidationError';
 
 describe('Errors', () => {
   describe('AInTandemError', () => {
@@ -40,12 +40,12 @@ describe('Errors', () => {
 
   describe('ApiError', () => {
     it('should create API error', () => {
-      const error = new ApiError('Not found', 404, '/api/test');
+      const error = new ApiError('Not found', 404, '/test');
 
       expect(error.message).toBe('Not found');
       expect(error.code).toBe('API_ERROR');
       expect(error.statusCode).toBe(404);
-      expect(error.endpoint).toBe('/api/test');
+      expect(error.endpoint).toBe('/test');
     });
   });
 

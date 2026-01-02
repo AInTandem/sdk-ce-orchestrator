@@ -585,7 +585,7 @@ client.workflows.listWorkflows()
     ↓
 WorkflowService.listWorkflows()
     ↓
-HttpClient.get('/api/workflows')
+HttpClient.get('/workflows')
     ↓
 [Auth Interceptor] → 添加 Authorization header
     ↓

@@ -18,7 +18,7 @@ on:
       api_url:
         description: 'URL of deployed API OpenAPI spec (for remote source)'
         required: false
-        default: 'https://staging-api.aintandem.com/openapi.json'
+        default: 'https://aintandem.github.io/orchestrator-api/openapi.json'
       environment:
         description: 'Environment name (for remote source)'
         required: false
@@ -56,12 +56,10 @@ jobs:
         id: api-url
         if: inputs.source == 'remote' || github.event_name == 'repository_dispatch'
         run: |
-          if [ "${{ inputs.api_url }}" != "" ] && [ "${{ inputs.api_url }}" != "https://staging-api.aintandem.com/openapi.json" ]; then
+          if [ "${{ inputs.api_url }}" != "" ] && [ "${{ inputs.api_url }}" != "https://aintandem.github.io/orchestrator-api/openapi.json" ]; then
             echo "url=${{ inputs.api_url }}" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.environment }}" == "production" ]; then
-            echo "url=https://api.aintandem.com/openapi.json" >> $GITHUB_OUTPUT
           else
-            echo "url=https://staging-api.aintandem.com/openapi.json" >> $GITHUB_OUTPUT
+            echo "url=https://aintandem.github.io/orchestrator-api/openapi.json" >> $GITHUB_OUTPUT
           fi
 
           # Use URL from repository dispatch payload if available

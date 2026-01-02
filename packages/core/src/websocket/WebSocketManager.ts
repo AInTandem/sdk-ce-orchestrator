@@ -8,8 +8,8 @@ import type {
   WSMessage,
   EventListener,
   ConnectionEventListener,
-} from './events.js';
-import { ConnectedEvent, DisconnectedEvent, ConnectionErrorEvent } from './events.js';
+} from './events';
+import { ConnectedEvent, DisconnectedEvent, ConnectionErrorEvent } from './events';
 
 export interface WebSocketManagerConfig {
   /** WebSocket URL */

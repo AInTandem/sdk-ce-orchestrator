@@ -5,18 +5,18 @@
  */
 
 // Event types
-export * from './events.js';
+export * from './events';
 
 // WebSocket manager
-export { WebSocketManager } from './WebSocketManager.js';
-export type { WebSocketManagerConfig, ConnectionState } from './WebSocketManager.js';
+export { WebSocketManager } from './WebSocketManager';
+export type { WebSocketManagerConfig, ConnectionState } from './WebSocketManager';
 
 // Progress client
-export { ProgressClient } from './ProgressClient.js';
+export { ProgressClient } from './ProgressClient';
 export type {
   ProgressClientConfig,
   ProgressSubscription,
   TaskProgressOptions,
   WorkflowProgressOptions,
   SandboxProgressOptions,
-} from './ProgressClient.js';
+} from './ProgressClient';

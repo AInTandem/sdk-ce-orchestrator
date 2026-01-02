@@ -461,7 +461,7 @@ export class AuthManager {
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.httpClient.request<LoginResponse>(
-      '/api/auth/login',
+      '/auth/login',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -483,7 +483,7 @@ export class AuthManager {
     }
 
     const response = await this.httpClient.request<RefreshResponse>(
-      '/api/auth/refresh',
+      '/auth/refresh',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -579,16 +579,16 @@ export class WorkflowService {
   async listWorkflows(status?: WorkflowStatus): Promise<Workflow[]> {
     const params = status ? `?status=${status}` : '';
     return this.httpClient.request<Workflow[]>(
-      `/api/workflows${params}`
+      `/workflows${params}`
     );
   }
 
   async getWorkflow(id: string): Promise<Workflow> {
-    return this.httpClient.request<Workflow>(`/api/workflows/${id}`);
+    return this.httpClient.request<Workflow>(`/workflows/${id}`);
   }
 
   async createWorkflow(request: CreateWorkflowRequest): Promise<Workflow> {
-    return this.httpClient.request<Workflow>('/api/workflows', {
+    return this.httpClient.request<Workflow>('/workflows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -599,7 +599,7 @@ export class WorkflowService {
     id: string,
     request: UpdateWorkflowRequest
   ): Promise<Workflow> {
-    return this.httpClient.request<Workflow>(`/api/workflows/${id}`, {
+    return this.httpClient.request<Workflow>(`/workflows/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -607,7 +607,7 @@ export class WorkflowService {
   }
 
   async deleteWorkflow(id: string): Promise<void> {
-    return this.httpClient.request<void>(`/api/workflows/${id}`, {
+    return this.httpClient.request<void>(`/workflows/${id}`, {
       method: 'DELETE',
     });
   }
@@ -616,7 +616,7 @@ export class WorkflowService {
     id: string,
     status: WorkflowStatus
   ): Promise<Workflow> {
-    return this.httpClient.request<Workflow>(`/api/workflows/${id}/status`, {
+    return this.httpClient.request<Workflow>(`/workflows/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -627,7 +627,7 @@ export class WorkflowService {
     id: string,
     request: CloneWorkflowRequest
   ): Promise<Workflow> {
-    return this.httpClient.request<Workflow>(`/api/workflows/${id}/clone`, {
+    return this.httpClient.request<Workflow>(`/workflows/${id}/clone`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -636,13 +636,13 @@ export class WorkflowService {
 
   async listVersions(id: string): Promise<WorkflowVersion[]> {
     return this.httpClient.request<WorkflowVersion[]>(
-      `/api/workflows/${id}/versions`
+      `/workflows/${id}/versions`
     );
   }
 
   async getVersion(versionId: string): Promise<WorkflowVersion> {
     return this.httpClient.request<WorkflowVersion>(
-      `/api/workflows/versions/${versionId}`
+      `/workflows/versions/${versionId}`
     );
   }
 
@@ -651,7 +651,7 @@ export class WorkflowService {
     request: CreateExecutionRequest
   ): Promise<WorkflowExecution> {
     return this.httpClient.request<WorkflowExecution>(
-      `/api/workflows/${workflowId}/executions`,
+      `/workflows/${workflowId}/executions`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -662,28 +662,28 @@ export class WorkflowService {
 
   async startExecution(executionId: string): Promise<WorkflowExecution> {
     return this.httpClient.request<WorkflowExecution>(
-      `/api/workflows/executions/${executionId}/start`,
+      `/workflows/executions/${executionId}/start`,
       { method: 'POST' }
     );
   }
 
   async pauseExecution(executionId: string): Promise<WorkflowExecution> {
     return this.httpClient.request<WorkflowExecution>(
-      `/api/workflows/executions/${executionId}/pause`,
+      `/workflows/executions/${executionId}/pause`,
       { method: 'POST' }
     );
   }
 
   async resumeExecution(executionId: string): Promise<WorkflowExecution> {
     return this.httpClient.request<WorkflowExecution>(
-      `/api/workflows/executions/${executionId}/resume`,
+      `/workflows/executions/${executionId}/resume`,
       { method: 'POST' }
     );
   }
 
   async cancelExecution(executionId: string): Promise<WorkflowExecution> {
     return this.httpClient.request<WorkflowExecution>(
-      `/api/workflows/executions/${executionId}/cancel`,
+      `/workflows/executions/${executionId}/cancel`,
       { method: 'POST' }
     );
   }

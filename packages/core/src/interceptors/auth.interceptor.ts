@@ -4,8 +4,8 @@
  * Automatically adds Authorization header to requests.
  */
 
-import type { RequestInterceptor } from '../types/manual/client.types.js';
-import { AuthManager } from '../client/AuthManager.js';
+import type { RequestInterceptor } from '../types/manual/client.types';
+import { AuthManager } from '../client/AuthManager';
 
 /**
  * Create an authentication interceptor

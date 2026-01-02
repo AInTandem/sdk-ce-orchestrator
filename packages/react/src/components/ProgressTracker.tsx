@@ -4,9 +4,9 @@
  * Displays real-time task/workflow progress with event list.
  */
 
-import { useTaskProgress } from '../hooks/useProgress.js';
+import { useTaskProgress } from '../hooks/useProgress';
 import type { TaskEvent } from '@aintandem/sdk-core';
-import { ProgressBar } from './ProgressBar.js';
+import { ProgressBar } from './ProgressBar';
 
 export interface ProgressTrackerProps {
   /** Project ID */

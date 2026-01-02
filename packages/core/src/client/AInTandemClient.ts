@@ -26,25 +26,26 @@
  * ```
  */
 
-import type { AInTandemClientConfig } from '../types/manual/client.types.js';
-import { LocalStorageTokenStorage } from '../types/manual/client.types.js';
-import { HttpClient } from './HttpClient.js';
-import { AuthManager } from './AuthManager.js';
-import { createAuthInterceptor } from '../interceptors/auth.interceptor.js';
+import type { AInTandemClientConfig } from '../types/manual/client.types';
+import { LocalStorageTokenStorage } from '../types/manual/client.types';
+import { HttpClient } from './HttpClient';
+import { AuthManager } from './AuthManager';
+import { createAuthInterceptor } from '../interceptors/auth.interceptor';
+import { AuthError } from '../errors/AuthError';
 
 // Import types
-import type { LoginRequest, LoginResponse } from '../types/generated/index.js';
+import type { LoginRequest, LoginResponse } from '../types/index';
 
 // Import services
-import { WorkflowService } from '../services/WorkflowService.js';
-import { TaskService } from '../services/TaskService.js';
-import { SandboxService } from '../services/SandboxService.js';
-import { ContextService } from '../services/ContextService.js';
-import { SettingsService } from '../services/SettingsService.js';
-import { WorkspaceService } from '../services/WorkspaceService.js';
+import { WorkflowService } from '../services/WorkflowService';
+import { TaskService } from '../services/TaskService';
+import { SandboxService } from '../services/SandboxService';
+import { ContextService } from '../services/ContextService';
+import { SettingsService } from '../services/SettingsService';
+import { WorkspaceService } from '../services/WorkspaceService';
 
 // Import WebSocket functionality
-import { ProgressClient } from '../websocket/ProgressClient.js';
+import { ProgressClient } from '../websocket/ProgressClient';
 
 /**
  * AInTandem Client
@@ -324,7 +325,7 @@ export class AInTandemClient {
 
     // Remove trailing slash and add /api/progress/subscribe path
     // The actual projectId will be added when subscribing
-    wsUrl = wsUrl.replace(/\/$/, '') + '/api/progress/subscribe';
+    wsUrl = wsUrl.replace(/\/$/, '') + '/progress/subscribe';
 
     return wsUrl;
   }
@@ -362,9 +363,15 @@ export class AuthService {
    * Refresh access token
    *
    * @returns Refresh response with new token
+   * @throws AuthError if token refresh fails or no token is returned
    */
   async refresh(): Promise<{ token: string }> {
     const response = await this.authManager.refresh();
+
+    if (!response.token) {
+      throw new AuthError('Token refresh failed: No token returned from server', 401);
+    }
+
     return { token: response.token };
   }
 

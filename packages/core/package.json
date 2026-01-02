@@ -41,6 +41,9 @@
     "url": "https://github.com/AInTandem/sdk-ce-orchestrator/issues"
   },
   "homepage": "https://github.com/AInTandem/sdk-ce-orchestrator#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.2.0",
     "jsdom": "^24.0.0",

@@ -8,7 +8,18 @@ NC='\033[0m'
 
 printf "🚀 Running pre-push checks...\n"
 
-# 0. Check for workspace dependencies in react package
+# 0. Check for uncommitted changes
+printf "${YELLOW}▶ Checking for uncommitted changes...${NC}\n"
+if [ -n "$(git status --porcelain)" ]; then
+    printf "\n"
+    printf "${RED}❌ You have uncommitted changes!${NC}\n"
+    printf "${YELLOW}Please commit or stash your changes before pushing.${NC}\n"
+    git status --short
+    exit 1
+fi
+printf "${GREEN}✓ No uncommitted changes${NC}\n"
+
+# 1. Check for workspace dependencies in react package
 printf "${YELLOW}▶ Checking npm dependencies...${NC}\n"
 if grep -q "workspace:\*" packages/react/package.json; then
     printf "\n"
@@ -18,7 +29,7 @@ if grep -q "workspace:\*" packages/react/package.json; then
 fi
 printf "${GREEN}✓ Npm dependencies check passed${NC}\n"
 
-# 1. TypeScript type check
+# 2. TypeScript type check
 printf "${YELLOW}▶ TypeScript type check...${NC}\n"
 if ! pnpm typecheck; then
     printf "\n"
@@ -27,7 +38,7 @@ if ! pnpm typecheck; then
 fi
 printf "${GREEN}✓ Type check passed${NC}\n"
 
-# 2. ESLint
+# 3. ESLint
 printf "${YELLOW}▶ ESLint...${NC}\n"
 if ! pnpm lint; then
     printf "\n"
@@ -36,7 +47,7 @@ if ! pnpm lint; then
 fi
 printf "${GREEN}✓ Linting passed${NC}\n"
 
-# 3. Build
+# 4. Build
 printf "${YELLOW}▶ Building...${NC}\n"
 if ! pnpm build > /dev/null 2>&1; then
     printf "\n"
@@ -45,7 +56,7 @@ if ! pnpm build > /dev/null 2>&1; then
 fi
 printf "${GREEN}✓ Build passed${NC}\n"
 
-# 4. Unit tests (skip if SKIP_TESTS=true)
+# 5. Unit tests (skip if SKIP_TESTS=true)
 if [ "$SKIP_TESTS" != "true" ]; then
     printf "${YELLOW}▶ Unit tests...${NC}\n"
     if ! pnpm test 2>&1; then
@@ -58,7 +69,7 @@ else
     printf "${YELLOW}⏭️  Skipping unit tests (SKIP_TESTS=true)${NC}\n"
 fi
 
-# 5. E2E tests (skip if SKIP_E2E=true)
+# 6. E2E tests (skip if SKIP_E2E=true)
 if [ "$SKIP_E2E" != "true" ]; then
     printf "${YELLOW}▶ E2E tests...${NC}\n"
     if ! pnpm test:e2e 2>/dev/null; then

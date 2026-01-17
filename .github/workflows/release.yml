@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-          # OIDC token will be exchanged for npm token automatically
+          npm-version: '11'  # Required for OIDC/Trusted Publishing (needs 11.5.1+)
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -84,6 +84,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
+          npm-version: '11'  # Required for OIDC/Trusted Publishing (needs 11.5.1+)
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

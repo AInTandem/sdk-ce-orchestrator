@@ -1,9 +1,10 @@
 name: Release & Publish to npm
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       publish:
@@ -19,8 +20,11 @@ permissions:
 jobs:
   version:
     name: Create Release Pull Request or Version
-    if: github.event_name == 'push'
+    if: github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC/Trusted Publishing
+      contents: write  # For creating version commits/PRs
     outputs:
       published: ${{ steps.changesets.outputs.published }}
       version: ${{ steps.changesets.outputs.version }}
@@ -55,7 +59,7 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # NPM_TOKEN is omitted to use OIDC/Trusted Publishing instead
 
   publish-manual:
     name: Manual Publish to npm

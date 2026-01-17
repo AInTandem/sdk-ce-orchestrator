@@ -71,7 +71,7 @@ async function exampleListWorkflows() {
     const workflows = await client.workflows.listWorkflows('published');
 
     console.log(`✅ Found ${workflows.length} published workflows:`);
-    workflows.forEach((workflow, index) => {
+    workflows.forEach((workflow: any, index: number) => {
       console.log(`\n${index + 1}. ${workflow.name}`);
       console.log(`   ID: ${workflow.id}`);
       console.log(`   Description: ${workflow.description}`);
@@ -99,12 +99,12 @@ async function exampleGetWorkflowDetails(workflowId: string) {
     console.log('Status:', workflow.status);
     console.log('Version:', workflow.version);
     console.log('\nPhases:');
-    workflow.definition.phases.forEach((phase, index) => {
+    workflow.definition.phases.forEach((phase: any, index: number) => {
       console.log(`\n  ${index + 1}. ${phase.title || phase.id}`);
       console.log(`     Description: ${phase.description}`);
       console.log(`     Color: ${phase.color}`);
       console.log(`     Steps: ${phase.steps.length}`);
-      phase.steps.forEach((step, stepIndex) => {
+      phase.steps.forEach((step: any, stepIndex: number) => {
         console.log(`       ${stepIndex + 1}. ${step.title || step.id} (type: ${step.type})`);
       });
     });
@@ -224,7 +224,7 @@ async function exampleListTaskHistory() {
     });
 
     console.log(`✅ Found ${history.length} recent tasks:`);
-    history.forEach((task, index) => {
+    history.forEach((task: any, index: number) => {
       console.log(`\n${index + 1}. Task ID: ${task.taskId}`);
       console.log(`   Message: ${task.message}`);
     });
@@ -244,7 +244,7 @@ async function exampleListOrganizations() {
     const organizations = await client.workspaces.listOrganizations();
 
     console.log(`✅ Found ${organizations.length} organizations:`);
-    organizations.forEach((org, index) => {
+    organizations.forEach((org: any, index: number) => {
       console.log(`\n${index + 1}. ${org.name}`);
       console.log(`   ID: ${org.id}`);
       console.log(`   Folder Path: ${org.folderPath || 'N/A'}`);
@@ -279,7 +279,7 @@ async function exampleListWorkspaces() {
 
     const firstOrg = organizations[0];
     console.log(`✅ Found ${workspaces.length} workspaces in ${firstOrg?.name || 'unknown'}:`);
-    workspaces.forEach((workspace, index) => {
+    workspaces.forEach((workspace: any, index: number) => {
       console.log(`\n${index + 1}. ${workspace.name}`);
       console.log(`   ID: ${workspace.id}`);
       console.log(`   Folder Path: ${workspace.folderPath || 'N/A'}`);
@@ -325,7 +325,7 @@ async function exampleListProjects() {
 
     const firstWorkspace = workspaces[0];
     console.log(`✅ Found ${projects.length} projects in ${firstWorkspace?.name || 'unknown'}:`);
-    projects.forEach((project, index) => {
+    projects.forEach((project: any, index: number) => {
       console.log(`\n${index + 1}. ${project.name}`);
       console.log(`   ID: ${project.id}`);
       console.log(`   Folder Path: ${project.folderPath || 'N/A'}`);

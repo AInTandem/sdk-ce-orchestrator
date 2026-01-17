@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write  # Required for OIDC/Trusted Publishing
 
 jobs:
   version:
@@ -36,6 +37,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+          # OIDC token will be exchanged for npm token automatically
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -59,6 +62,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
+      id-token: write  # Required for OIDC/Trusted Publishing
       contents: write  # For creating tags
     steps:
       - name: Checkout
@@ -75,6 +79,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -84,8 +89,7 @@ jobs:
 
       - name: Publish to npm
         run: pnpm changeset:publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # OIDC token is automatically exchanged for npm token
 
       - name: Create Git Tags
         run: |

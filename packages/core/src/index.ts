@@ -22,7 +22,7 @@ export { AInTandemClient, AuthService } from './client/AInTandemClient';
 
 // Services
 export { WorkflowService } from './services/WorkflowService';
-export { TaskService } from './services/TaskService';
+export { TaskService, type TaskHistoryFilters, type TaskStep } from './services/TaskService';
 export { SandboxService } from './services/SandboxService';
 export { ContextService } from './services/ContextService';
 export { SettingsService } from './services/SettingsService';

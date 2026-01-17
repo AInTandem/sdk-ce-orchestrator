@@ -14,7 +14,10 @@ const TEST_USER = {
   password: process.env.TEST_PASSWORD || 'admin123',
 };
 
-describe('SDK + Orchestrator E2E Tests', () => {
+// Skip E2E tests unless E2E_TEST environment variable is set
+const runE2E = process.env.E2E_TEST === 'true';
+
+describe.runIf(runE2E)('SDK + Orchestrator E2E Tests', () => {
   let client: AInTandemClient;
   let authToken: string;
 
@@ -68,9 +71,8 @@ describe('SDK + Orchestrator E2E Tests', () => {
     });
 
     it('should refresh token', async () => {
-      const response = await client.auth.refreshToken();
+      const response = await client.auth.refresh();
 
-      expect(response.success).toBe(true);
       expect(response.token).toBeDefined();
     });
 

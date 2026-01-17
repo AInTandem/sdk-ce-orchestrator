@@ -15,7 +15,12 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@aintandem/sdk-core": ["../../packages/core/src"],
+      "@aintandem/sdk-react": ["../../packages/react/src"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", ".pnpm-store", "tests", "vitest.*"]

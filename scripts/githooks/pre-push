@@ -57,8 +57,9 @@ if [ "$SKIP_TESTS" != "true" ]; then
     printf "${YELLOW}▶ Unit tests...${NC}\n"
     if ! pnpm test 2>&1; then
         printf "\n"
-        printf "${YELLOW}⚠️  Unit tests failed or not configured, skipping...${NC}\n"
+        printf "${RED}❌ Unit tests failed!${NC}\n"
         printf "To skip: SKIP_TESTS=true git push\n"
+        exit 1
     fi
     printf "${GREEN}✓ Unit tests passed${NC}\n"
 else

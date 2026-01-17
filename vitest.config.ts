@@ -30,11 +30,11 @@ export default defineConfig({
     // Resolve workspace packages correctly
     resolveSnapshots: resolve(__dirname, './packages'),
   },
+  // Resolve workspace packages to source directories
   resolve: {
     alias: {
-      // Explicitly resolve MSW modules
-      'msw/node': resolve(__dirname, './node_modules/.pnpm/msw@2.12.7_@types+node@20.19.27_typescript@5.9.3/node_modules/msw/lib/node/index.js'),
-      'msw': resolve(__dirname, './node_modules/.pnpm/msw@2.12.7_@types+node@20.19.27_typescript@5.9.3/node_modules/msw/lib/core/index.js'),
+      '@aintandem/sdk-core': resolve(__dirname, './packages/core/src'),
+      '@aintandem/sdk-react': resolve(__dirname, './packages/react/src'),
     },
   },
   // Optimize for pnpm workspace

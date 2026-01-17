@@ -69,37 +69,25 @@ class MockWebSocket {
 
 // Only mock WebSocket if not in browser environment
 if (typeof window === 'undefined') {
-  (global as any).WebSocket = MockWebSocket;
+  // Use Object.defineProperty to override readonly property
+  Object.defineProperty(global, 'WebSocket', {
+    value: MockWebSocket,
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
 }
 
 // Setup MSW handlers
+// jsdom runs in Node, so use setupServer from msw/node
 import { setupServer } from 'msw/node';
 import { HttpResponse, http } from 'msw';
-
-export const mockServer = setupServer();
-
-// Setup request handlers before all tests
-beforeAll(() => {
-  mockServer.listen({
-    onUnhandledRequest: 'error',
-  });
-});
-
-// Reset request handlers after each test
-afterEach(() => {
-  mockServer.resetHandlers();
-});
-
-// Close server after all tests
-afterAll(() => {
-  mockServer.close();
-});
 
 // Common API response handlers
 // Note: MSW v2 requires full URL matching
 const BASE_URL = 'http://localhost:9900';
 
-mockServer.use(
+const handlers = [
   // Health check
   http.get(`${BASE_URL}/health`, () => {
     return HttpResponse.json({
@@ -113,9 +101,24 @@ mockServer.use(
     const body = await request.json() as { username: string; password: string };
 
     if (body.username === 'testuser' && body.password === 'password123') {
+      // Mock JWT token (header.payload.signature format)
+      const mockToken = Buffer.from(
+        JSON.stringify({ alg: 'HS256', typ: 'JWT' })
+      ).toString('base64') +
+      '.' +
+      Buffer.from(
+        JSON.stringify({
+          sub: 'user-123',
+          username: 'testuser',
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          iat: Math.floor(Date.now() / 1000),
+        })
+      ).toString('base64') +
+      '.mock-signature';
+
       return HttpResponse.json({
         success: true,
-        token: 'mock-jwt-token',
+        token: mockToken,
         refreshToken: 'mock-refresh-token',
         user: {
           id: 'user-123',
@@ -134,10 +137,52 @@ mockServer.use(
   }),
 
   http.post(`${BASE_URL}/auth/refresh`, () => {
+    // Mock JWT token for refresh
+    const mockToken = Buffer.from(
+      JSON.stringify({ alg: 'HS256', typ: 'JWT' })
+    ).toString('base64') +
+    '.' +
+    Buffer.from(
+      JSON.stringify({
+        sub: 'user-123',
+        username: 'testuser',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+      })
+    ).toString('base64') +
+    '.mock-signature';
+
     return HttpResponse.json({
       success: true,
-      token: 'new-mock-jwt-token',
+      token: mockToken,
       refreshToken: 'new-mock-refresh-token',
+      user: {
+        id: 'user-123',
+        username: 'testuser',
+      },
+    });
+  }),
+
+  // Auth verify endpoint
+  http.post(`${BASE_URL}/auth/verify`, () => {
+    // Mock JWT token for verify
+    const mockToken = Buffer.from(
+      JSON.stringify({ alg: 'HS256', typ: 'JWT' })
+    ).toString('base64') +
+    '.' +
+    Buffer.from(
+      JSON.stringify({
+        sub: 'user-123',
+        username: 'testuser',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+      })
+    ).toString('base64') +
+    '.mock-signature';
+
+    return HttpResponse.json({
+      success: true,
+      token: mockToken,
       user: {
         id: 'user-123',
         username: 'testuser',
@@ -167,19 +212,17 @@ mockServer.use(
     const url = new URL(request.url);
     const status = url.searchParams.get('status') || 'published';
 
-    return HttpResponse.json({
-      workflows: [
-        {
-          id: 'wf-1',
-          name: 'Test Workflow 1',
-          description: 'A test workflow',
-          status,
-          definition: {},
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
-        },
-      ],
-    });
+    return HttpResponse.json([
+      {
+        id: 'wf-1',
+        name: 'Test Workflow 1',
+        description: 'A test workflow',
+        status,
+        definition: {},
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+    ]);
   }),
 
   http.get(`${BASE_URL}/workflows/:id`, ({ params }) => {
@@ -199,6 +242,46 @@ mockServer.use(
       { error: 'Workflow not found' },
       { status: 404 }
     );
+  }),
+
+  // Create workflow
+  http.post(`${BASE_URL}/workflows`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'wf-new',
+      ...body,
+      status: 'draft',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    });
+  }),
+
+  // Update workflow
+  http.put(`${BASE_URL}/workflows/:id`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'wf-1',
+      ...body,
+      updatedAt: new Date().toISOString(),
+    });
+  }),
+
+  // Change workflow status
+  http.patch(`${BASE_URL}/workflows/:id/status`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'wf-1',
+      ...body,
+      updatedAt: new Date().toISOString(),
+    });
+  }),
+
+  // Delete workflow
+  http.delete(`${BASE_URL}/workflows/:id`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Workflow deleted',
+    });
   }),
 
   // Tasks endpoints
@@ -243,6 +326,72 @@ mockServer.use(
     });
   }),
 
+  // Project task endpoints
+  http.post(`${BASE_URL}/projects/:projectId/tasks`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'task-new',
+      taskId: 'task-new',
+      message: 'Task queued successfully',
+      ...body,
+      status: 'queued',
+      createdAt: new Date().toISOString(),
+    });
+  }),
+
+  http.post(`${BASE_URL}/projects/:projectId/tasks/adhoc`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'adhoc-task-new',
+      taskId: 'adhoc-task-new',
+      message: 'Adhoc task created',
+      ...body,
+      status: 'queued',
+      createdAt: new Date().toISOString(),
+    });
+  }),
+
+  http.get(`${BASE_URL}/projects/:projectId/tasks`, () => {
+    return HttpResponse.json([
+      {
+        id: 'task-1',
+        taskId: 'task-1',
+        status: 'completed',
+        projectId: 'proj-1',
+        task: 'test-task',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        completedAt: '2024-01-01T00:01:00.000Z',
+      },
+    ]);
+  }),
+
+  http.get(`${BASE_URL}/projects/:projectId/tasks/:taskId`, ({ params }) => {
+    return HttpResponse.json({
+      id: params.taskId,
+      taskId: params.taskId,
+      projectId: params.projectId,
+      status: 'completed',
+      message: 'Task completed',
+      result: { success: true },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      completedAt: '2024-01-01T00:01:00.000Z',
+    });
+  }),
+
+  http.post(`${BASE_URL}/projects/:projectId/tasks/:taskId/cancel`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Task cancelled',
+    });
+  }),
+
+  http.get(`${BASE_URL}/projects/:projectId/task-queue-status`, () => {
+    return HttpResponse.json({
+      queueLength: 0,
+      processing: false,
+    });
+  }),
+
   // Containers endpoints
   http.get(`${BASE_URL}/containers`, () => {
     return HttpResponse.json({
@@ -257,4 +406,87 @@ mockServer.use(
       ],
     });
   }),
-);
+
+  // Sandbox (flexy) endpoints
+  http.get(`${BASE_URL}/flexy`, () => {
+    return HttpResponse.json([
+      {
+        sandboxId: 'sandbox-1',
+        name: 'test-sandbox',
+        status: 'running',
+        projectId: 'proj-1',
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+    ]);
+  }),
+
+  http.get(`${BASE_URL}/flexy/:id`, ({ params }) => {
+    return HttpResponse.json({
+      sandboxId: params.id,
+      name: 'test-sandbox',
+      status: 'running',
+      projectId: 'proj-1',
+      createdAt: '2024-01-01T00:00:00.000Z',
+    });
+  }),
+
+  http.post(`${BASE_URL}/flexy`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      id: 'sandbox-new',
+      ...body,
+      status: 'created',
+      createdAt: new Date().toISOString(),
+    });
+  }),
+
+  http.post(`${BASE_URL}/flexy/:id/start`, () => {
+    return HttpResponse.json({
+      id: 'sandbox-1',
+      status: 'running',
+      message: 'Sandbox started',
+    });
+  }),
+
+  http.post(`${BASE_URL}/flexy/:id/stop`, () => {
+    return HttpResponse.json({
+      id: 'sandbox-1',
+      status: 'stopped',
+      message: 'Sandbox stopped',
+    });
+  }),
+
+  http.post(`${BASE_URL}/flexy/:id/restart`, () => {
+    return HttpResponse.json({
+      id: 'sandbox-1',
+      status: 'running',
+      message: 'Sandbox restarted',
+    });
+  }),
+
+  http.delete(`${BASE_URL}/flexy/:id`, () => {
+    return HttpResponse.json({
+      success: true,
+      message: 'Sandbox deleted',
+    });
+  }),
+];
+
+export const mockServer = setupServer(...handlers);
+
+// Setup request handlers before all tests
+beforeAll(() => {
+  mockServer.listen({
+    onUnhandledRequest: 'error',
+  });
+});
+
+// Reset request handlers after each test
+afterEach(() => {
+  mockServer.resetHandlers();
+});
+
+// Close server after all tests
+afterAll(() => {
+  mockServer.close();
+});

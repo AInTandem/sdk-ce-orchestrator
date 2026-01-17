@@ -109,6 +109,7 @@ export type QueueStatusResponse = Schemas['QueueStatusResponse'];
 
 // Settings types
 export type SettingsResponse = Schemas['SettingsResponse'];
+export type Settings = SettingsResponse; // Alias for convenience
 export type UserPreferences = Schemas['UserPreferences'];
 
 // Sandbox operation types (complete) - imported from schemas

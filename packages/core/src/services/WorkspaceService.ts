@@ -88,7 +88,7 @@ export class WorkspaceService {
     organizationId: string,
     request: UpdateOrganizationRequest
   ): Promise<Organization> {
-    return this.httpClient.patch<Organization>(
+    return this.httpClient.put<Organization>(
       `/organizations/${organizationId}`,
       request
     );
@@ -157,7 +157,7 @@ export class WorkspaceService {
     workspaceId: string,
     request: UpdateWorkspaceRequest
   ): Promise<Workspace> {
-    return this.httpClient.patch<Workspace>(
+    return this.httpClient.put<Workspace>(
       `/workspaces/${workspaceId}`,
       request
     );
@@ -224,7 +224,7 @@ export class WorkspaceService {
     projectId: string,
     request: UpdateProjectRequest
   ): Promise<Project> {
-    return this.httpClient.patch<Project>(`/projects/${projectId}`, request);
+    return this.httpClient.put<Project>(`/projects/${projectId}`, request);
   }
 
   /**

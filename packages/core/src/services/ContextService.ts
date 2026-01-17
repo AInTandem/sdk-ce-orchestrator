@@ -81,7 +81,7 @@ export class ContextService {
     memoryId: string,
     request: UpdateMemoryRequest
   ): Promise<Memory> {
-    return this.httpClient.patch<Memory>(
+    return this.httpClient.put<Memory>(
       `/context/memories/${memoryId}`,
       request
     );
@@ -117,16 +117,9 @@ export class ContextService {
    * @returns Search results
    */
   async searchMemories(request: SearchMemoriesRequest): Promise<MemorySearchResult> {
-    const params = new URLSearchParams();
-    if (request.query) params.append('query', request.query);
-    if (request.scope) params.append('scope', request.scope);
-    if (request.scope_id) params.append('scope_id', request.scope_id);
-    if (request.limit !== undefined) params.append('limit', request.limit.toString());
-    if (request.include_inherited !== undefined) params.append('include_inherited', String(request.include_inherited));
-
-    const queryString = params.toString();
-    return this.httpClient.get<MemorySearchResult>(
-      `/context/memories/search${queryString ? `?${queryString}` : ''}`
+    return this.httpClient.post<MemorySearchResult>(
+      '/context/search',
+      request
     );
   }
 
@@ -235,6 +228,270 @@ export class ContextService {
   async getMemoryStats(projectId: string): Promise<MemoryStats> {
     return this.httpClient.get<MemoryStats>(
       `/projects/${projectId}/memories/stats`
+    );
+  }
+
+  // ========================================================================
+  // Scope-based Memory Operations
+  // ========================================================================
+
+  /**
+   * Get memories for a specific scope with optional hierarchical inheritance
+   *
+   * @param scope - Scope (e.g., 'organization', 'workspace', 'project')
+   * @param scopeId - Scope ID
+   * @param options - Optional filters
+   * @returns Array of memories
+   */
+  async getScopeMemories(
+    scope: string,
+    scopeId: string,
+    options?: {
+      memory_type?: string;
+      tags?: string[];
+      limit?: number;
+      include_inherited?: boolean;
+    }
+  ): Promise<Memory[]> {
+    const params = new URLSearchParams();
+    if (options?.memory_type) params.append('memory_type', options.memory_type);
+    if (options?.tags) {
+      options.tags.forEach(tag => params.append('tags', tag));
+    }
+    if (options?.limit !== undefined) params.append('limit', options.limit.toString());
+    if (options?.include_inherited !== undefined) params.append('include_inherited', String(options.include_inherited));
+
+    const queryString = params.toString();
+    return this.httpClient.get<Memory[]>(
+      `/context/${scope}/${scopeId}/memories${queryString ? `?${queryString}` : ''}`
+    );
+  }
+
+  /**
+   * Get similar memories based on a memory's content
+   *
+   * @param memoryId - Memory ID
+   * @param limit - Maximum number of similar memories to return (default: 10)
+   * @returns Array of similar memories
+   */
+  async getSimilarMemories(memoryId: string, limit = 10): Promise<Memory[]> {
+    return this.httpClient.get<Memory[]>(
+      `/context/memories/${memoryId}/similar?limit=${limit}`
+    );
+  }
+
+  // ========================================================================
+  // Statistics & Health
+  // ========================================================================
+
+  /**
+   * Get overall memory statistics
+   *
+   * @returns Memory statistics
+   */
+  async getStats(): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>('/context/stats');
+  }
+
+  /**
+   * Get memory statistics for a specific scope
+   *
+   * @param scope - Scope (e.g., 'organization', 'workspace', 'project')
+   * @param scopeId - Scope ID
+   * @returns Memory statistics
+   */
+  async getScopeStats(scope: string, scopeId: string): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>(
+      `/context/stats/${scope}/${scopeId}`
+    );
+  }
+
+  /**
+   * Health check for the context system
+   *
+   * @returns Health status
+   */
+  async healthCheck(): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>('/context/health');
+  }
+
+  /**
+   * Get context system information
+   *
+   * @returns Context system info
+   */
+  async getContextInfo(): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>('/context/info');
+  }
+
+  // ========================================================================
+  // Document Import
+  // ========================================================================
+
+  /**
+   * Import a document file to the context system
+   *
+   * @param request - Import request with file path
+   * @returns Import result
+   */
+  async importDocument(request: {
+    file_path: string;
+    scope: string;
+    scope_id: string;
+    memory_type?: string;
+    visibility?: string;
+    tags?: string[];
+    chunk_content?: boolean;
+  }): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/import/document',
+      request
+    );
+  }
+
+  /**
+   * Import document content directly (no filesystem access needed)
+   *
+   * @param request - Import request with content
+   * @returns Import result
+   */
+  async importDocumentContent(request: {
+    content: string;
+    file_path: string;
+    scope: string;
+    scope_id: string;
+    memory_type?: string;
+    visibility?: string;
+    tags?: string[];
+    chunk_content?: boolean;
+  }): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/import/document/content',
+      request
+    );
+  }
+
+  /**
+   * Import all documents from a folder
+   *
+   * @param request - Import folder request
+   * @returns Import result
+   */
+  async importFolder(request: {
+    folder_path: string;
+    scope: string;
+    scope_id: string;
+    recursive?: boolean;
+    file_extensions?: string[];
+    tags?: string[];
+  }): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/import/folder',
+      request
+    );
+  }
+
+  // ========================================================================
+  // File Sync Operations
+  // ========================================================================
+
+  /**
+   * Sync a single file (re-import if changed)
+   *
+   * @param request - Sync file request
+   * @returns Sync result
+   */
+  async syncFile(request: {
+    file_path: string;
+    scope: string;
+    scope_id: string;
+    tags?: string[];
+  }): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/sync/file',
+      request
+    );
+  }
+
+  /**
+   * Sync all files in a folder
+   *
+   * @param request - Sync folder request
+   * @returns Sync result
+   */
+  async syncFolder(request: {
+    folder_path: string;
+    scope: string;
+    scope_id: string;
+    recursive?: boolean;
+    file_extensions?: string[];
+  }): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/sync/folder',
+      request
+    );
+  }
+
+  /**
+   * Get file sync statistics
+   *
+   * @param scope - Scope (e.g., 'organization', 'workspace', 'project')
+   * @param scopeId - Scope ID
+   * @returns Sync statistics
+   */
+  async getSyncStats(scope: string, scopeId: string): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>(
+      `/context/sync/stats?scope=${scope}&scope_id=${scopeId}`
+    );
+  }
+
+  /**
+   * Get list of tracked files
+   *
+   * @param scope - Scope (e.g., 'organization', 'workspace', 'project')
+   * @param scopeId - Scope ID
+   * @returns List of tracked files
+   */
+  async getTrackedFiles(scope: string, scopeId: string): Promise<Record<string, unknown>> {
+    return this.httpClient.get<Record<string, unknown>>(
+      `/context/sync/files?scope=${scope}&scope_id=${scopeId}`
+    );
+  }
+
+  // ========================================================================
+  // Task Dialog Capture
+  // ========================================================================
+
+  /**
+   * Auto-capture task dialog to context
+   *
+   * @param taskId - Task ID
+   * @param request - Dialog capture request
+   * @returns Capture result
+   */
+  async captureTaskDialog(
+    taskId: string,
+    request: {
+      projectId: string;
+      content: string;
+      metadata?: Record<string, unknown>;
+    }
+  ): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      `/context/capture/task/${taskId}`,
+      request
+    );
+  }
+
+  /**
+   * Trigger full hierarchy resync to context-manager
+   *
+   * @returns Resync result
+   */
+  async syncHierarchy(): Promise<Record<string, unknown>> {
+    return this.httpClient.post<Record<string, unknown>>(
+      '/context/sync/hierarchy',
+      {}
     );
   }
 }

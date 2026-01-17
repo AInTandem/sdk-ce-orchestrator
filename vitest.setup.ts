@@ -96,9 +96,12 @@ afterAll(() => {
 });
 
 // Common API response handlers
+// Note: MSW v2 requires full URL matching
+const BASE_URL = 'http://localhost:9900';
+
 mockServer.use(
   // Health check
-  http.get('/health', () => {
+  http.get(`${BASE_URL}/health`, () => {
     return HttpResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -106,7 +109,7 @@ mockServer.use(
   }),
 
   // Auth endpoints
-  http.post('/auth/login', async ({ request }) => {
+  http.post(`${BASE_URL}/auth/login`, async ({ request }) => {
     const body = await request.json() as { username: string; password: string };
 
     if (body.username === 'testuser' && body.password === 'password123') {
@@ -130,7 +133,7 @@ mockServer.use(
     );
   }),
 
-  http.post('/auth/refresh', () => {
+  http.post(`${BASE_URL}/auth/refresh`, () => {
     return HttpResponse.json({
       success: true,
       token: 'new-mock-jwt-token',
@@ -143,7 +146,7 @@ mockServer.use(
   }),
 
   // Settings endpoints
-  http.get('/settings', () => {
+  http.get(`${BASE_URL}/settings`, () => {
     return HttpResponse.json({
       gitDisplayName: 'Test User',
       gitEmail: 'test@example.com',
@@ -151,7 +154,7 @@ mockServer.use(
     });
   }),
 
-  http.put('/settings', async ({ request }) => {
+  http.put(`${BASE_URL}/settings`, async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
       ...body,
@@ -160,7 +163,7 @@ mockServer.use(
   }),
 
   // Workflows endpoints
-  http.get('/workflows', ({ request }) => {
+  http.get(`${BASE_URL}/workflows`, ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get('status') || 'published';
 
@@ -179,7 +182,7 @@ mockServer.use(
     });
   }),
 
-  http.get('/workflows/:id', ({ params }) => {
+  http.get(`${BASE_URL}/workflows/:id`, ({ params }) => {
     if (params.id === 'wf-1') {
       return HttpResponse.json({
         id: 'wf-1',
@@ -199,7 +202,7 @@ mockServer.use(
   }),
 
   // Tasks endpoints
-  http.post('/tasks/execute', async ({ request }) => {
+  http.post(`${BASE_URL}/tasks/execute`, async ({ request }) => {
     const body = await request.json();
 
     return HttpResponse.json({
@@ -213,7 +216,7 @@ mockServer.use(
     });
   }),
 
-  http.get('/tasks/:taskId', ({ params }) => {
+  http.get(`${BASE_URL}/tasks/:taskId`, ({ params }) => {
     if (params.taskId === 'task-1') {
       return HttpResponse.json({
         id: 'task-1',
@@ -233,7 +236,7 @@ mockServer.use(
     );
   }),
 
-  http.post('/tasks/:taskId/cancel', () => {
+  http.post(`${BASE_URL}/tasks/:taskId/cancel`, () => {
     return HttpResponse.json({
       success: true,
       message: 'Task cancelled',
@@ -241,7 +244,7 @@ mockServer.use(
   }),
 
   // Containers endpoints
-  http.get('/containers', () => {
+  http.get(`${BASE_URL}/containers`, () => {
     return HttpResponse.json({
       containers: [
         {

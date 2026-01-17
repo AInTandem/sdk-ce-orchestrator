@@ -4,7 +4,7 @@
  * Manages user settings.
  */
 
-import type { UpdateSettingsRequest } from '../types/index';
+import type { UpdateSettingsRequest, SettingsResponse } from '../types/index';
 import { HttpClient } from '../client/HttpClient';
 
 /**
@@ -37,8 +37,8 @@ export class SettingsService {
    *
    * @returns User settings
    */
-  async getSettings(): Promise<UserSettings> {
-    return this.httpClient.get<UserSettings>('/settings');
+  async getSettings(): Promise<SettingsResponse> {
+    return this.httpClient.get<SettingsResponse>('/settings');
   }
 
   /**
@@ -47,8 +47,8 @@ export class SettingsService {
    * @param request - Settings update request
    * @returns Updated settings
    */
-  async updateSettings(request: UpdateSettingsRequest): Promise<UserSettings> {
-    return this.httpClient.patch<UserSettings>('/settings', request);
+  async updateSettings(request: UpdateSettingsRequest): Promise<SettingsResponse> {
+    return this.httpClient.put<SettingsResponse>('/settings', request);
   }
 
   /**
@@ -56,8 +56,8 @@ export class SettingsService {
    *
    * @returns Default settings
    */
-  async resetSettings(): Promise<UserSettings> {
-    return this.httpClient.post<UserSettings>('/settings/reset', {});
+  async resetSettings(): Promise<SettingsResponse> {
+    return this.httpClient.post<SettingsResponse>('/settings/reset', {});
   }
 
   /**
@@ -68,7 +68,7 @@ export class SettingsService {
    */
   async getSetting<T = unknown>(key: string): Promise<T> {
     const settings = await this.getSettings();
-    return settings[key] as T;
+    return (settings as Record<string, unknown>)[key] as T;
   }
 
   /**
@@ -78,7 +78,7 @@ export class SettingsService {
    * @param value - Setting value
    * @returns Updated settings
    */
-  async setSetting<T = unknown>(key: string, value: T): Promise<UserSettings> {
+  async setSetting<T = unknown>(key: string, value: T): Promise<SettingsResponse> {
     return this.updateSettings({ [key]: value });
   }
 
@@ -88,8 +88,8 @@ export class SettingsService {
    * @param key - Setting key
    * @returns Updated settings
    */
-  async deleteSetting(key: string): Promise<UserSettings> {
-    return this.httpClient.delete<UserSettings>(`/settings/${key}`);
+  async deleteSetting(key: string): Promise<SettingsResponse> {
+    return this.httpClient.delete<SettingsResponse>(`/settings/${key}`);
   }
 }
 

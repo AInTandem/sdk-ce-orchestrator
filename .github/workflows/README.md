@@ -14,24 +14,111 @@ This directory contains CI/CD workflows for the AInTandem SDK project.
 - `test` - Runs unit tests with coverage
 - `build` - Builds all packages
 
-### Type Sync Check (`type-sync-check.yml`)
+### Release & Publish (`release.yml`)
+
+**Triggers**:
+- Push to `main` branch (automatic)
+- Manual workflow dispatch
+
+**Purpose**: Build, test, and publish packages to npm registry using Changesets and OIDC (Trusted Publishing).
+
+**How It Works**:
+
+This workflow uses [Changesets](https://github.com/changesets/changesets) for version management:
+
+1. When changesets exist, the workflow creates a PR "Version Packages"
+2. Merging that PR updates package.json versions
+3. The next push to `main` publishes packages to npm automatically
+4. Git tags and GitHub Releases are created automatically
+
+**Jobs**:
+1. `version` - Creates version PR or publishes (on push to main)
+2. `publish-manual` - Manual publishing trigger
+3. `release-notification` - Notification after successful publish
+
+**Published Packages**:
+- `@aintandem/sdk-core`
+- `@aintandem/sdk-react`
+
+**Usage**:
+
+```bash
+# 1. After completing features, create a changeset
+pnpm changeset
+# Select packages and version type (major/minor/patch)
+
+# 2. Commit the changeset file
+git add .changeset/*.md
+git commit -m "feat: add new feature"
+
+# 3. Push to main branch
+git push origin main
+
+# 4. Review and merge the "Version Packages" PR
+# Publishing happens automatically on merge
+
+# Manual publishing (if needed)
+gh workflow run release.yml -f publish=true
+```
+
+**OIDC/Trusted Publishing Setup**:
+
+One-time setup required on [npmjs.com](https://www.npmjs.com):
+
+1. Go to **Your Organization** → **Publishing**
+2. Click **Add organization** → **GitHub Actions**
+3. Configure:
+   - **Organization name**: `aintandem`
+   - **GitHub repository**: `AInTandem/sdk-ce-orchestrator`
+   - **Workflow name**: `release.yml` (or `*` for all workflows)
+   - **Environment name**: leave empty
+4. Click **Create** and **Save**
+
+No `NPM_TOKEN` secret needed in GitHub!
+
+**Workspace Dependencies**:
+
+During development, packages use `workspace:*` for local dependencies. When publishing, pnpm automatically replaces these with actual version numbers:
+
+```json
+// Development (packages/react/package.json)
+{
+  "dependencies": {
+    "@aintandem/sdk-core": "workspace:*"  // Local link
+  }
+}
+
+// Published (on npm)
+{
+  "dependencies": {
+    "@aintandem/sdk-core": "^0.5.2"  // Actual version
+  }
+}
+```
+
+**Permissions**:
+```yaml
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC token exchange
+```
+
+### Handle API Changes (`handle-api-changes.yml`)
 
 **Triggers**: Push to main/develop, Pull Requests, Manual
 
-**Purpose**: Ensures SDK types are synchronized with Orchestrator's OpenAPI specification.
+**Purpose**: Handles automated type generation when API changes are detected.
 
 **Process**:
 1. Checks out the SDK code
 2. Checks out the Orchestrator repository
 3. Builds Orchestrator API and generates OpenAPI spec
 4. Generates SDK types from the local spec
-5. Checks for differences in generated types
-6. Fails if types are out of sync
+5. Creates PR with type changes if detected
 
 **Usage**:
 - Automatically runs on every push/PR
 - Can be triggered manually from GitHub Actions tab
-- Must pass before merging PRs
 
 ### Sync from Orchestrator (`sync-from-orchestrator.yml`)
 
@@ -82,8 +169,8 @@ The SDK checks out the Orchestrator repository and builds the OpenAPI spec from 
 ```yaml
 - uses: actions/checkout@v4
   with:
-    repository: aintandem/orchestrator
-    path: orchestrator
+    repository: aintandem/ce-orchestrator
+    path: ce-orchestrator
     ref: main
 ```
 
@@ -116,7 +203,7 @@ Orchestrator can trigger SDK type sync by sending a repository dispatch event:
   uses: peter-evans/repository-dispatch@v2
   with:
     token: ${{ secrets.SDK_REPO_TOKEN }}
-    repository: aintandem/sdk
+    repository: aintandem/sdk-ce-orchestrator
     event-type: orchestrator-updated
     client-payload: |
       {

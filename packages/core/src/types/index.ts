@@ -58,42 +58,9 @@ export type SaveTaskOutputRequest = Schemas['SaveTaskOutputRequest'];
 export type SaveTaskOutputResponse = Schemas['SaveTaskOutputResponse'];
 export type UpdateStepStatusRequest = Schemas['UpdateStepStatusRequest'];
 
-// Extract enum types - Sandbox (new naming)
-export const SandboxOperationType = {
-  CREATE: 'create',
-  START: 'start',
-  STOP: 'stop',
-  RESTART: 'restart',
-  DELETE: 'delete',
-  PULL_IMAGE: 'pull_image',
-} as const;
-export type SandboxOperationType = typeof SandboxOperationType[keyof typeof SandboxOperationType];
-
-// Backward compatibility alias
-export const ContainerOperationType = SandboxOperationType;
-export type ContainerOperationType = SandboxOperationType;
-
-export const OperationStatus = {
-  PENDING: 'pending',
-  IN_PROGRESS: 'in_progress',
-  PULLING_IMAGE: 'pulling_image',
-  CREATING_SANDBOX: 'creating_sandbox',
-  STARTING_SANDBOX: 'starting_sandbox',
-  STOPPING_SANDBOX: 'stopping_sandbox',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  CANCELLED: 'cancelled',
-} as const;
-export type OperationStatus = typeof OperationStatus[keyof typeof OperationStatus];
-
-export const StepExecutionStatus = {
-  PENDING: 'pending',
-  RUNNING: 'running',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  SKIPPED: 'skipped',
-} as const;
-export type StepExecutionStatus = typeof StepExecutionStatus[keyof typeof StepExecutionStatus];
+// Re-export operation status types as string unions for convenience
+export type OperationStatus = Schemas['OperationStatus'];
+export type StepExecutionStatus = Schemas['StepExecution']['status'];
 
 // Sandbox types (new naming)
 export type CreateSandboxRequest = Schemas['CreateSandboxRequest'];
@@ -135,3 +102,15 @@ export type SyncFolderRequest = Schemas['SyncFolderRequest'];
 export type BrowseDirectoriesRequest = Schemas['BrowseDirectoriesRequest'];
 export type BrowseDirectoriesResponse = Schemas['BrowseDirectoriesResponse'];
 export type ListFoldersResponse = Schemas['ListFoldersResponse'];
+
+// Workflow Execution types (complete)
+export type WorkflowExecution = Schemas['WorkflowExecution'];
+export type QueueStatusResponse = Schemas['QueueStatusResponse'];
+
+// Settings types
+export type SettingsResponse = Schemas['SettingsResponse'];
+export type UserPreferences = Schemas['UserPreferences'];
+
+// Sandbox operation types (complete) - imported from schemas
+// Note: SandboxOperationType and OperationStatus are string literal unions from the schema
+export type SandboxOperation = Schemas['SandboxOperation'];

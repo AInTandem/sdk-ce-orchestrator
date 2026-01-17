@@ -10,8 +10,7 @@ import type {
   SandboxCreationResponse,
   AsyncOperationResponse,
   CancelOperationResponse,
-  SandboxOperationType,
-  OperationStatus,
+  SandboxOperation,
 } from '../types/index';
 import { HttpClient } from '../client/HttpClient';
 
@@ -185,37 +184,10 @@ export class SandboxService {
    * @param operationId - Operation ID
    * @returns Operation details
    */
-  async getOperationStatus(operationId: string): Promise<{
-    id: string;
-    type: SandboxOperationType;
-    status: OperationStatus;
-    sandboxId?: string;
-    sandboxName?: string;
-    projectId?: string;
-    userId?: string;
-    progress: {
-      current: number;
-      total: number;
-      percentage: number;
-      message: string;
-    };
-    error?: string;
-    startTime: string;
-    endTime?: string;
-    duration?: number;
-    steps: Array<{
-      id: string;
-      name: string;
-      status: 'pending' | 'running' | 'completed' | 'failed';
-      startTime?: string;
-      endTime?: string;
-      duration?: number;
-      message?: string;
-      error?: string;
-    }>;
-    metadata?: Record<string, unknown>;
-  }> {
-    return this.httpClient.get(`/flexy/operations/${operationId}`);
+  async getOperationStatus(operationId: string): Promise<SandboxOperation> {
+    return this.httpClient.get<SandboxOperation>(
+      `/flexy/operations/${operationId}`
+    );
   }
 
   /**
@@ -240,43 +212,12 @@ export class SandboxService {
    */
   async getProjectOperations(
     projectId: string,
-    status?: OperationStatus[]
-  ): Promise<{
-    operations: Array<{
-      id: string;
-      type: SandboxOperationType;
-      status: OperationStatus;
-      sandboxId?: string;
-      sandboxName?: string;
-      projectId?: string;
-      userId?: string;
-      progress: {
-        current: number;
-        total: number;
-        percentage: number;
-        message: string;
-      };
-      error?: string;
-      startTime: string;
-      endTime?: string;
-      duration?: number;
-      steps: Array<{
-        id: string;
-        name: string;
-        status: 'pending' | 'running' | 'completed' | 'failed';
-        startTime?: string;
-        endTime?: string;
-        duration?: number;
-        message?: string;
-        error?: string;
-      }>;
-      metadata?: Record<string, unknown>;
-    }>;
-  }> {
+    status?: string[]
+  ): Promise<{ operations: SandboxOperation[] }> {
     const url = status
       ? `/flexy/projects/${projectId}/operations?status=${status.join('&status=')}`
       : `/flexy/projects/${projectId}/operations`;
-    return this.httpClient.get(url);
+    return this.httpClient.get<{ operations: SandboxOperation[] }>(url);
   }
 
   // ========================================================================

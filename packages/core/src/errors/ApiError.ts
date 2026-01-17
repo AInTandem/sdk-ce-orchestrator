@@ -10,6 +10,10 @@ export class ApiError extends AInTandemError {
     public readonly endpoint: string,
     details?: unknown
   ) {
-    super(message, 'API_ERROR', statusCode, details);
+    // Extract error code from details if available, otherwise use default
+    const errorCode =
+      (details as { code?: string })?.code || 'API_ERROR';
+
+    super(message, errorCode, statusCode, details);
   }
 }

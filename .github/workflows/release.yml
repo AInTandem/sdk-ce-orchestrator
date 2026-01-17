@@ -1,0 +1,156 @@
+name: Release & Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish packages to npm'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC/Trusted Publishing
+
+jobs:
+  version:
+    name: Create Release Pull Request or Version
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.changesets.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changeset:publish
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # For OIDC, we don't need NPM_TOKEN, but changesets/action may try to use it
+          # The action will fall back to OIDC if NPM_TOKEN is not set
+
+  publish-manual:
+    name: Manual Publish to npm
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC/Trusted Publishing
+      contents: write  # For creating tags
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Publish to npm using OIDC
+        run: pnpm changeset:publish
+        # NOTE: OIDC is used automatically, no NPM_TOKEN needed
+
+      - name: Create Git Tags
+        run: |
+          # Get versions from published packages
+          CORE_VERSION=$(pnpm --filter @aintandem/sdk-core exec -- json -f package.json -e 'this.version')
+          REACT_VERSION=$(pnpm --filter @aintandem/sdk-react exec -- json -f package.json -e 'this.version')
+
+          echo "Tagging versions: core=$CORE_VERSION, react=$REACT_VERSION"
+
+          # Create and push tags
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ "$CORE_VERSION" != "$(git tag -l "sdk-core@$CORE_VERSION")" ]; then
+            git tag "sdk-core@$CORE_VERSION"
+            git push origin "sdk-core@$CORE_VERSION"
+          fi
+
+          if [ "$REACT_VERSION" != "$(git tag -l "sdk-react@$REACT_VERSION")" ]; then
+            git tag "sdk-react@$REACT_VERSION"
+            git push origin "sdk-react@$REACT_VERSION"
+          fi
+
+          # Create unified version tag if versions match
+          if [ "$CORE_VERSION" == "$REACT_VERSION" ]; then
+            if [ "$CORE_VERSION" != "$(git tag -l "v$CORE_VERSION")" ]; then
+              git tag "v$CORE_VERSION" -m "Release v$CORE_VERSION"
+              git push origin "v$CORE_VERSION"
+            fi
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version || 'latest' }}
+          name: Release v${{ steps.version.outputs.version || 'latest' }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-notification:
+    name: Send Release Notification
+    needs: [version]
+    if: needs.version.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get published packages
+        id: packages
+        run: |
+          CORE_VERSION=$(pnpm --filter @aintandem/sdk-core exec -- json -f package.json -e 'this.version')
+          REACT_VERSION=$(pnpm --filter @aintandem/sdk-react exec -- json -f package.json -e 'this.version')
+
+          echo "core=$CORE_VERSION" >> $GITHUB_OUTPUT
+          echo "react=$REACT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Send notification
+        run: |
+          echo "✅ Published packages to npm:"
+          echo "  - @aintandem/sdk-core@${{ steps.packages.outputs.core }}"
+          echo "  - @aintandem/sdk-react@${{ steps.packages.outputs.react }}"

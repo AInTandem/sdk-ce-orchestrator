@@ -1,6 +1,6 @@
 {
   "name": "@aintandem/sdk-react",
-  "version": "0.5.2",
+  "version": "0.6.0-alpha",
   "type": "module",
   "description": "React integration for AInTandem CE Orchestrator TypeScript SDK",
   "main": "./dist/index.cjs",
@@ -44,7 +44,7 @@
     "react-dom": "^18.0.0"
   },
   "dependencies": {
-    "@aintandem/sdk-core": "^0.5.1"
+    "@aintandem/sdk-core": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",

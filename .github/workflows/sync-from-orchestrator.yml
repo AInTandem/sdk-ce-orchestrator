@@ -48,7 +48,7 @@ jobs:
         if: inputs.source == 'local' || github.event_name == 'schedule'
         uses: actions/checkout@v4
         with:
-          repository: aintandem/orchestrator
+          repository: aintandem/ce-orchestrator
           path: orchestrator
           ref: ${{ inputs.orchestrator_ref || 'main' }}
 
@@ -80,7 +80,7 @@ jobs:
 
       - name: Build Orchestrator OpenAPI Spec (local source)
         if: inputs.source == 'local' || github.event_name == 'schedule'
-        working-directory: ./orchestrator
+        working-directory: ./ce-orchestrator
         run: |
           pnpm install
           pnpm build:api
@@ -92,7 +92,7 @@ jobs:
       - name: Generate SDK types (local source)
         if: inputs.source == 'local' || github.event_name == 'schedule'
         env:
-          OPENAPI_SPEC_PATH: ./orchestrator/dist/swagger.json
+          OPENAPI_SPEC_PATH: ./ce-orchestrator/dist/swagger.json
         run: |
           pnpm generate-types
           echo "✅ SDK types generated from local Orchestrator spec"

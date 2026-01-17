@@ -1,6 +1,6 @@
 {
   "name": "@aintandem/sdk-core",
-  "version": "0.5.1",
+  "version": "0.6.0-alpha",
   "description": "Core TypeScript SDK for AInTandem CE Orchestrator API",
   "type": "module",
   "main": "./dist/index.js",

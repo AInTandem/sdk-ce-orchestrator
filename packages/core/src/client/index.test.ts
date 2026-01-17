@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AInTandemClient } from './index';
-import type { AInTandemClientConfig } from './index';
+import { AInTandemClient } from './AInTandemClient';
+import type { AInTandemClientConfig } from '../types/manual/client.types';
 
 describe('AInTandemClient', () => {
   let client: AInTandemClient;

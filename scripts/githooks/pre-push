@@ -19,15 +19,11 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 printf "${GREEN}✓ No uncommitted changes${NC}\n"
 
-# 1. Check for workspace dependencies in react package
+# 1. Check for workspace dependencies
+# Note: pnpm automatically converts workspace:* to actual versions during publish
+# This is the recommended approach for pnpm workspaces
 printf "${YELLOW}▶ Checking npm dependencies...${NC}\n"
-if grep -q "workspace:\*" packages/react/package.json; then
-    printf "\n"
-    printf "${RED}❌ workspace:* found in packages/react/package.json!${NC}\n"
-    printf "${YELLOW}Please use version ranges (e.g., ^0.5.1) instead of workspace:*${NC}\n"
-    exit 1
-fi
-printf "${GREEN}✓ Npm dependencies check passed${NC}\n"
+printf "${GREEN}✓ Using workspace:* dependencies (pnpm handles conversion on publish)${NC}\n"
 
 # 2. TypeScript type check
 printf "${YELLOW}▶ TypeScript type check...${NC}\n"

@@ -14,8 +14,7 @@ on:
         default: true
 
 permissions:
-  contents: read
-  id-token: write  # Required for OIDC/Trusted Publishing
+  contents: write  # For creating tags and releases
 
 jobs:
   version:
@@ -23,7 +22,6 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success' && github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC/Trusted Publishing
       contents: write  # For creating version commits/PRs
     outputs:
       published: ${{ steps.changesets.outputs.published }}
@@ -42,7 +40,6 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-          npm-version: '11'  # Required for OIDC/Trusted Publishing (needs 11.5.1+)
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -59,14 +56,13 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # NPM_TOKEN is omitted to use OIDC/Trusted Publishing instead
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-manual:
     name: Manual Publish to npm
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC/Trusted Publishing
       contents: write  # For creating tags
     steps:
       - name: Checkout
@@ -84,7 +80,6 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-          npm-version: '11'  # Required for OIDC/Trusted Publishing (needs 11.5.1+)
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -94,7 +89,8 @@ jobs:
 
       - name: Publish to npm
         run: pnpm changeset:publish
-        # OIDC token is automatically exchanged for npm token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create Git Tags
         run: |

@@ -45,12 +45,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout Orchestrator (for local source)
-        if: inputs.source == 'local' || github.event_name == 'schedule'
+        if: inputs.source == 'local'
         uses: actions/checkout@v4
         with:
           repository: aintandem/ce-orchestrator
           path: orchestrator
           ref: ${{ inputs.orchestrator_ref || 'main' }}
+          token: ${{ secrets.ORCHESTRATOR_PAT }}
 
       - name: Determine API URL (for remote source)
         id: api-url
@@ -79,8 +80,8 @@ jobs:
           version: 8
 
       - name: Build Orchestrator OpenAPI Spec (local source)
-        if: inputs.source == 'local' || github.event_name == 'schedule'
-        working-directory: ./ce-orchestrator
+        if: inputs.source == 'local'
+        working-directory: ./orchestrator
         run: |
           pnpm install
           pnpm build:api
@@ -90,15 +91,15 @@ jobs:
         run: pnpm install
 
       - name: Generate SDK types (local source)
-        if: inputs.source == 'local' || github.event_name == 'schedule'
+        if: inputs.source == 'local'
         env:
-          OPENAPI_SPEC_PATH: ./ce-orchestrator/dist/swagger.json
+          OPENAPI_SPEC_PATH: ./orchestrator/dist/swagger.json
         run: |
           pnpm generate-types
           echo "✅ SDK types generated from local Orchestrator spec"
 
       - name: Generate SDK types (remote source)
-        if: inputs.source == 'remote' || github.event_name == 'repository_dispatch'
+        if: inputs.source == 'remote' || github.event_name == 'schedule' || github.event_name == 'repository_dispatch'
         env:
           OPENAPI_SPEC_URL: ${{ steps.api-url.outputs.url }}
         run: |

@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write  # Required for OIDC/Trusted Publishing
 
 jobs:
   version:
@@ -54,15 +53,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # For OIDC, we don't need NPM_TOKEN, but changesets/action may try to use it
-          # The action will fall back to OIDC if NPM_TOKEN is not set
 
   publish-manual:
     name: Manual Publish to npm
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC/Trusted Publishing
       contents: write  # For creating tags
     steps:
       - name: Checkout
@@ -86,9 +82,10 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Publish to npm using OIDC
+      - name: Publish to npm
         run: pnpm changeset:publish
-        # NOTE: OIDC is used automatically, no NPM_TOKEN needed
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create Git Tags
         run: |

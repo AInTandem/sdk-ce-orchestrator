@@ -22,8 +22,7 @@ dist/
 build/
 *.tsbuildinfo
 
-# Generated types
-packages/core/src/types/generated/
+# Generated types (now version-controlled for CI builds)
 
 # Test coverage
 coverage/

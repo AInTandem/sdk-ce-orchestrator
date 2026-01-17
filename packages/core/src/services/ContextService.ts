@@ -162,7 +162,7 @@ export class ContextService {
     params.append('prompt', request.prompt);
     if (request.maxMemories !== undefined) params.append('maxMemories', request.maxMemories.toString());
     if (request.types) {
-      request.types.forEach(type => params.append('types', type));
+      request.types.forEach((type: string) => params.append('types', type));
     }
     if (request.includeWorkspace !== undefined) params.append('includeWorkspace', String(request.includeWorkspace));
     if (request.includeOrg !== undefined) params.append('includeOrg', String(request.includeOrg));

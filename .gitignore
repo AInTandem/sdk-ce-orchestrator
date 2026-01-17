@@ -22,6 +22,10 @@ dist/
 build/
 *.tsbuildinfo
 
+# Ignore .js files in src directories (IDE compilation artifacts)
+**/src/**/*.js
+!**/src/**/*.d.ts
+
 # Generated types (now version-controlled for CI builds)
 
 # Test coverage

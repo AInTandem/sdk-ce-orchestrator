@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build core package for type checking
+        run: pnpm --filter @aintandem/sdk-core build
+
       - name: Type check
         run: pnpm typecheck
 

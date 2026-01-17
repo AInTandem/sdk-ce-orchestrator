@@ -58,13 +58,13 @@ export function useWorkflow(id: string) {
 
     client.workflows
       .getWorkflow(id)
-      .then((data) => {
+      .then((data: Workflow) => {
         if (!cancelled) {
           setWorkflow(data);
           setLoading(false);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!cancelled) {
           setError(err as Error);
           setLoading(false);
@@ -223,7 +223,7 @@ export function useWorkflowVersions(workflowId: string) {
     client.workflows
       .listVersions(workflowId)
       .then(setVersions)
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
         setLoading(false);
       })
@@ -274,7 +274,7 @@ export function useWorkflowExecution(executionId: string) {
     client.workflows
       .getExecution(executionId)
       .then(setExecution)
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
       })
       .finally(() => {

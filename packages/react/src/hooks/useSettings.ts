@@ -57,7 +57,7 @@ export function useSettings() {
     client.settings
       .getSettings()
       .then(setSettings)
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
       })
       .finally(() => {
@@ -75,11 +75,11 @@ export function useSettings() {
 
     return client.settings
       .updateSettings(request)
-      .then((updated) => {
+      .then((updated: Settings) => {
         setSettings(updated);
         return updated;
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
         throw err;
       })

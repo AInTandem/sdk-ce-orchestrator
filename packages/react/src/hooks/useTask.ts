@@ -57,7 +57,7 @@ export function useTask(projectId: string, taskId: string) {
     client.tasks
       .getTaskStatus(projectId, taskId)
       .then(setTask)
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
       })
       .finally(() => {
@@ -140,7 +140,7 @@ export function useExecuteTask(
       });
       setTask(result);
       return result;
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err as Error);
       throw err;
     } finally {
@@ -201,7 +201,7 @@ export function useExecuteAdhocTask(projectId: string) {
         const result = await client.tasks.executeAdhocTask(projectId, request);
         setTask(result);
         return result;
-      } catch (err) {
+      } catch (err: unknown) {
         setError(err as Error);
         throw err;
       } finally {
@@ -265,7 +265,7 @@ export function useTaskHistory(
     try {
       const data = await client.tasks.listTaskHistory(projectId, filters);
       setHistory(data);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -321,7 +321,7 @@ export function useQueueStatus(projectId: string) {
     client.tasks
       .getQueueStatus(projectId)
       .then(setStatus)
-      .catch((err) => {
+      .catch((err: unknown) => {
         setError(err as Error);
       })
       .finally(() => {

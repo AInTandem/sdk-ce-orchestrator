@@ -70,7 +70,7 @@ export function useTaskProgress(
         const unsubscribe = await client.subscribeToTask(
           projectId,
           taskId,
-          (event) => {
+          (event: TaskEvent) => {
             if (!mounted) return;
 
             setEvents((prev) => [...prev, event]);
@@ -160,7 +160,7 @@ export function useWorkflowProgress(
       try {
         const unsubscribe = await client.subscribeToWorkflow(
           projectId,
-          (event) => {
+          (event: WorkflowEvent) => {
             if (!mounted) return;
 
             setEvents((prev) => [...prev, event]);
@@ -246,7 +246,7 @@ export function useContainerProgress(
       try {
         const unsubscribe = await client.subscribeToSandbox(
           projectId,
-          (event) => {
+          (event: SandboxEvent) => {
             if (!mounted) return;
 
             setEvents((prev) => [...prev, event]);
@@ -328,7 +328,7 @@ export function useProgress(
           await progress.connect(projectId);
         }
 
-        const subscription = await progress.subscribeToProgress(projectId, (event: any) => {
+        const subscription = await progress.subscribeToProgress(projectId, (event: ProgressEvent) => {
           if (!mounted) return;
 
           // Filter by project

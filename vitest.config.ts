@@ -24,12 +24,9 @@ export default defineConfig({
       '**/dist/**',
       '**/examples/**/node_modules/**',
     ],
-    // Use different environments for different test types
-    environment: 'node',
-    environmentMatchGlobs: [
-      // React tests need jsdom environment - use more specific patterns
-      ['packages/react/**/*.tsx', 'jsdom'],
-    ],
+    // Use jsdom as default environment for all tests
+    // Node tests will work in jsdom, but React tests need jsdom
+    environment: 'jsdom',
     // Resolve workspace packages correctly
     resolveSnapshots: resolve(__dirname, './packages'),
   },

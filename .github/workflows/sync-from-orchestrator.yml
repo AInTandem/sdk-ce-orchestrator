@@ -68,16 +68,16 @@ jobs:
             echo "url=${{ github.event.client_payload.openapi_url }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
 
       - name: Build Orchestrator OpenAPI Spec (local source)
         if: inputs.source == 'local'
